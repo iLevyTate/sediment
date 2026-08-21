@@ -65,9 +65,20 @@ It checks your remaining API budget before starting and fetches only what fits, 
 visit degrades to fewer commits rather than failing halfway. Pasting a token (kept in your browser,
 never sent anywhere but GitHub) lifts the ceiling from 60 requests an hour to 5,000.
 
-The site is the repository root — `index.html` importing from `src/`, with a `.nojekyll` beside it —
-so GitHub Pages serves it as-is with no build step and no deploy workflow. `sediment web-assets`
-copies the same layout into a directory if you would rather host it somewhere else.
+The page opens on a prebuilt example — `expressjs/express`, 6,158 commits across 17 years — which
+ships with the site as `demo.json`. It costs no API requests, so the interface is doing something
+real the moment the page loads, and it carries exact line counts because the CLI generated it.
+
+The site is the repository root — `index.html` importing from `src/`, with a `.nojekyll` beside it
+so Pages serves the files verbatim instead of running them through Jekyll. No build step, no deploy
+workflow. `sediment web-assets` copies the same layout into a directory if you would rather host it
+somewhere else.
+
+Regenerate the demo with:
+
+```bash
+node bin/sediment.js --repo /path/to/express --out /tmp/x --payload demo.json
+```
 
 ## Why the local version is the accurate one
 

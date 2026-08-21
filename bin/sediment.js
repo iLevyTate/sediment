@@ -37,6 +37,7 @@ Options
   --lanes N          maximum bands in the section (default 12)
   --snapshot-days N  days between tree snapshots (default 7)
   --json             also write the full datasets as JSON
+  --payload FILE     also write just the player payload, for the hosted demo
   -h, --help         this
 `;
 
@@ -75,6 +76,7 @@ function parseArgs(argv) {
     else if (a === '--lanes') o.lanes = Number(argv[(i += 1)]);
     else if (a === '--snapshot-days') o.snapshotDays = Number(argv[(i += 1)]);
     else if (a === '--json') o.json = true;
+    else if (a === '--payload') o.payload = argv[(i += 1)];
     else if (a === '-h' || a === '--help') {
       process.stdout.write(USAGE);
       process.exit(0);
@@ -106,8 +108,9 @@ function webAssets(outDir) {
   const dest = path.resolve(outDir);
   fs.rmSync(dest, { recursive: true, force: true });
   fs.mkdirSync(path.join(dest, 'src'), { recursive: true });
-  for (const f of ['index.html', 'app.js']) {
-    fs.copyFileSync(path.join(ROOT, f), path.join(dest, f));
+  for (const f of ['index.html', 'app.js', 'demo.json']) {
+    const from = path.join(ROOT, f);
+    if (fs.existsSync(from)) fs.copyFileSync(from, path.join(dest, f));
   }
   for (const f of ['palette.js', 'lanes.js', 'payload.js', 'github.js', 'player.html']) {
     fs.copyFileSync(path.join(ROOT, 'src', f), path.join(dest, 'src', f));
@@ -155,6 +158,13 @@ async function main() {
     contributors: data.contributors,
     fileEvents: data.fileEvents,
   });
+
+  if (opts.payload) {
+    const dest = path.resolve(opts.payload);
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.writeFileSync(dest, `${JSON.stringify(payload)}\n`, 'utf8');
+    log(`wrote ${path.relative(process.cwd(), dest)} (${kb(fs.statSync(dest).size)})`);
+  }
 
   const pagePath = path.join(outDir, 'index.html');
   fs.writeFileSync(pagePath, buildHtml(fs.readFileSync(TEMPLATE, 'utf8'), payload), 'utf8');

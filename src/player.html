@@ -1190,10 +1190,13 @@
       const a = clamp01((ts - rel.ts) / RELEASE_FADE);
       const rx = Math.round(rel.x) + 0.5;
       const labelY = 12 + rel.row * LABEL_LEADING;
+      // A repository with a hundred tags cannot label them all; the unlabelled
+      // ones keep a much fainter line so the density still reads without a
+      // picket fence across the section.
       ctx.strokeStyle = theme.ink2;
-      ctx.globalAlpha = a * 0.35;
+      ctx.globalAlpha = a * (rel.label ? 0.35 : 0.12);
       ctx.beginPath();
-      ctx.moveTo(rx, labelY + 3);
+      ctx.moveTo(rx, rel.label ? labelY + 3 : PAD.t - 4);
       ctx.lineTo(rx, Hgt - PAD.b);
       ctx.stroke();
       if (rel.label) {
