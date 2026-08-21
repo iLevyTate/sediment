@@ -23,11 +23,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      # Enables Pages and switches its source to Actions on first run, so the
-      # deploy below does not 404 waiting on a manual settings change.
+      # Pages may already exist in legacy (branch) mode — in which case every
+      # push also kicks off a Jekyll build that overwrites this deployment.
+      # `configure-pages` enables Pages but will not move an existing site off
+      # the branch source, so ask for the workflow source explicitly. PUT
+      # switches an existing site; POST creates one that does not exist yet.
+      - name: Make Actions the Pages source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -X PUT "repos/$GITHUB_REPOSITORY/pages" -f build_type=workflow \
+            || gh api -X POST "repos/$GITHUB_REPOSITORY/pages" -f build_type=workflow
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - run: node bin/sediment.js web-assets --out _site
       - uses: actions/upload-pages-artifact@v3
         with:
