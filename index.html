@@ -1,0 +1,1903 @@
+<title>Sediment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  media="print"
+  onload="this.media = 'all'"
+  href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500&display=swap"
+/>
+
+<style>
+  :root {
+    --ground: #e6e8ee;
+    --surface: #fbfbfd;
+    --surface-2: #eef0f5;
+    --ink: #14171f;
+    --ink-2: #4b5364;
+    --muted: #79808f;
+    --line: #d2d6e0;
+    --line-soft: #e2e5ec;
+    --accent: #1f6f78;
+    --playhead: #b4553c;
+    --pos: #4d7a3f;
+    --sheen: rgba(255, 255, 255, 0.9);
+    --panel-top: rgba(255, 255, 255, 0.55);
+    --grid: rgba(20, 23, 31, 0.1);
+    --chrome: 1;
+
+    --shadow: 0 1px 2px rgba(20, 23, 31, 0.07), 0 12px 32px -10px rgba(20, 23, 31, 0.16);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --ground: #07080b;
+      --surface: #0f1218;
+      --surface-2: #171b23;
+      --ink: #e9ecf3;
+      --ink-2: #a8b0be;
+      --muted: #6f7787;
+      --line: #232833;
+      --line-soft: #1a1e26;
+      --accent: #5cb8bf;
+      --playhead: #e0805f;
+      --pos: #93b37f;
+      --sheen: rgba(255, 255, 255, 0.06);
+      --panel-top: rgba(255, 255, 255, 0.028);
+      --grid: rgba(255, 255, 255, 0.09);
+
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 14px 40px -10px rgba(0, 0, 0, 0.6);
+    }
+  }
+
+  :root[data-theme='dark'] {
+    --ground: #07080b;
+    --surface: #0f1218;
+    --surface-2: #171b23;
+    --ink: #e9ecf3;
+    --ink-2: #a8b0be;
+    --muted: #6f7787;
+    --line: #232833;
+    --line-soft: #1a1e26;
+    --accent: #5cb8bf;
+    --playhead: #e0805f;
+    --pos: #93b37f;
+    --sheen: rgba(255, 255, 255, 0.06);
+    --panel-top: rgba(255, 255, 255, 0.028);
+    --grid: rgba(255, 255, 255, 0.09);
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 14px 40px -10px rgba(0, 0, 0, 0.6);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Driven by the title sequence: the instrument assembles as the card clears.
+     Opacity and transform only, so nothing reflows. */
+  .masthead,
+  .rail,
+  .axis,
+  .transport,
+  .notes,
+  .colophon {
+    opacity: var(--chrome);
+    transform: translateY(calc((1 - var(--chrome)) * 10px));
+  }
+
+  .shell {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: clamp(16px, 3vw, 32px);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* ---- masthead ---------------------------------------------------------- */
+  .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 20px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 14px;
+  }
+
+  .wordmark {
+    font-family: 'IBM Plex Sans Condensed', ui-sans-serif, sans-serif;
+    font-weight: 700;
+    font-size: clamp(22px, 3.4vw, 34px);
+    letter-spacing: -0.015em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .wordmark em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .standfirst {
+    color: var(--ink-2);
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  .masthead-meta {
+    margin-left: auto;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  /* ---- stage ------------------------------------------------------------- */
+  .stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 16px;
+    align-items: start;
+  }
+
+  @media (max-width: 940px) {
+    .stage {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* Panels read as material rather than outlined rectangles: a top-lit
+     gradient, a one-pixel inset sheen along the top edge, and a shadow with
+     real falloff. */
+  .panel {
+    background: linear-gradient(180deg, var(--panel-top), rgba(0, 0, 0, 0) 46%), var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    box-shadow:
+      inset 0 1px 0 var(--sheen),
+      var(--shadow);
+  }
+
+  .section-canvas {
+    position: relative;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  #section {
+    display: block;
+    width: 100%;
+    height: auto;
+    cursor: ew-resize;
+    touch-action: none;
+  }
+
+  .axis {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px 10px;
+    border-top: 1px solid var(--line-soft);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* ---- transport --------------------------------------------------------- */
+  .transport {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  button {
+    font: inherit;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 7px 13px;
+    cursor: pointer;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
+  }
+
+  button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  button[aria-pressed='true'] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--surface);
+  }
+
+  .transport .primary {
+    min-width: 92px;
+    font-weight: 600;
+  }
+
+  .speeds {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+  }
+
+  .speeds button {
+    padding: 7px 10px;
+  }
+
+  .rail-label {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    height: 14px;
+    line-height: 14px;
+  }
+
+  /* ---- readouts ----------------------------------------------------------
+     Every box below is dimensioned, not content-sized. A three-line commit
+     subject and a one-line one occupy identical space, so nothing downstream
+     shifts when the ticker changes 25 times a second. */
+  .rail {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .readout {
+    position: relative;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Playback position, absolutely placed so it can never affect layout. */
+  .progress-rail {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    overflow: hidden;
+    border-radius: 6px 6px 0 0;
+    background: var(--line-soft);
+  }
+
+  .progress-rail i {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+  }
+
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+    height: 30px;
+    line-height: 30px;
+    white-space: nowrap;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 12px;
+    border-top: 1px solid var(--line-soft);
+    border-bottom: 1px solid var(--line-soft);
+    padding: 12px 0;
+  }
+
+  .stat-value {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 17px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    height: 22px;
+    line-height: 22px;
+    white-space: nowrap;
+  }
+
+  .stat-value.add {
+    color: var(--pos);
+  }
+
+  .stat-value.del {
+    color: var(--playhead);
+  }
+
+  .ticker {
+    border-top: 1px solid var(--line-soft);
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 154px;
+  }
+
+  .ticker-head {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    align-items: center;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--muted);
+    height: 15px;
+    min-width: 0;
+  }
+
+  .ticker-head .sha {
+    color: var(--accent);
+    flex: 0 0 auto;
+  }
+
+  .ticker-head .who {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ticker-head .bot {
+    flex: 0 0 auto;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 0 4px;
+    font-size: 9px;
+    line-height: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .ticker-head .bot[hidden] {
+    display: none;
+  }
+
+  .ticker-subject {
+    font-size: 13px;
+    line-height: 19px;
+    color: var(--ink);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 57px;
+  }
+
+  .ticker-paths {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    height: 56px;
+  }
+
+  .ticker-paths span {
+    height: 14px;
+    line-height: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    direction: rtl;
+    text-align: left;
+  }
+
+  /* ---- legend ------------------------------------------------------------ */
+  .legend {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .legend-row {
+    display: grid;
+    grid-template-columns: 9px minmax(0, 1fr) 52px;
+    align-items: center;
+    gap: 8px;
+    height: 26px;
+  }
+
+  .swatch {
+    width: 9px;
+    height: 9px;
+    border-radius: 1px;
+  }
+
+  .legend-name {
+    font-size: 12px;
+    height: 16px;
+    line-height: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .legend-bar {
+    position: relative;
+    height: 3px;
+    background: var(--line-soft);
+    border-radius: 2px;
+    margin-top: 3px;
+    overflow: hidden;
+  }
+
+  /* No CSS transition: the width is rewritten every animation frame, so a
+     transition would only fight the render loop and smear during scrubs. */
+  .legend-bar i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    display: block;
+    border-radius: 2px;
+  }
+
+  .legend-value {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  /* ---- notes ------------------------------------------------------------- */
+  .notes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px;
+  }
+
+  .note {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .note h2 {
+    font-family: 'IBM Plex Sans Condensed', ui-sans-serif, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.01em;
+  }
+
+  .note p {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: 13px;
+  }
+
+  .note code {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11.5px;
+    background: var(--surface-2);
+    border-radius: 2px;
+    padding: 1px 4px;
+  }
+
+  .colophon {
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  /* Film mode (#film): a 16:9 frame for off-screen recording. Chrome that only
+     makes sense for a live viewer is dropped so the capture is all signal. */
+  :root.film body {
+    overflow: hidden;
+  }
+
+  :root.film .shell {
+    max-width: none;
+    height: 100vh;
+    padding: 26px 30px;
+    gap: 14px;
+  }
+
+  :root.film .transport,
+  :root.film .notes,
+  :root.film .colophon {
+    display: none;
+  }
+
+  :root.film .stage {
+    grid-template-columns: minmax(0, 1fr) 322px;
+  }
+
+  /* The rail has to fit 900px without scrolling, so film mode tightens the
+     readout and legend rather than cropping either. */
+  :root.film .readout,
+  :root.film .legend {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+
+  :root.film .clock {
+    font-size: 23px;
+    height: 27px;
+    line-height: 27px;
+  }
+
+  :root.film .stats {
+    gap: 7px 12px;
+  }
+
+  :root.film .ticker {
+    padding-top: 9px;
+  }
+
+  :root.film .masthead {
+    padding-bottom: 10px;
+  }
+
+  :root.film .standfirst {
+    max-width: 80ch;
+  }
+
+  :root.film .ticker {
+    height: 140px;
+  }
+
+  :root.film .stats {
+    padding: 9px 0;
+  }
+
+  :root.film .legend {
+    gap: 3px;
+  }
+
+  :root.film .legend-row {
+    grid-template-columns: 8px minmax(0, 1fr) 46px;
+    gap: 7px;
+    height: 22px;
+  }
+
+  :root.film .legend-name {
+    font-size: 11px;
+  }
+
+  :root.film .legend-bar {
+    height: 2.5px;
+    margin-top: 2px;
+  }
+
+  :root.film .legend-value {
+    font-size: 10px;
+  }
+</style>
+
+<div class="shell">
+  <header class="masthead">
+    <h1 class="wordmark" id="wordmark"></h1>
+    <p class="standfirst">
+      <span id="standfirst"></span>
+    </p>
+    <div class="masthead-meta" id="mastheadMeta"></div>
+  </header>
+
+  <div class="stage">
+    <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0">
+      <div class="panel section-canvas">
+        <canvas id="section" width="1600" height="820" role="img" aria-describedby="canvasDesc"
+          >Animated stratigraphic section of the repository's history.</canvas
+        >
+        <p id="canvasDesc" class="sr-only"></p>
+        <div class="axis" id="axis"></div>
+      </div>
+
+      <div class="panel transport">
+        <button class="primary" id="play" type="button">Play</button>
+        <button id="restart" type="button">Restart</button>
+        <span class="rail-label" id="progressLabel">0%</span>
+        <div class="speeds" role="group" aria-label="Playback speed">
+          <span class="rail-label" style="align-self: center; margin-right: 4px">Speed</span>
+          <button type="button" data-speed="0.5">0.5&times;</button>
+          <button type="button" data-speed="1" aria-pressed="true">1&times;</button>
+          <button type="button" data-speed="2">2&times;</button>
+          <button type="button" data-speed="4">4&times;</button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="rail">
+      <div class="panel readout">
+        <span class="progress-rail"><i id="progressFill"></i></span>
+        <div>
+          <div class="rail-label">Date</div>
+          <div class="clock" id="clock">&mdash;</div>
+        </div>
+        <div class="stats">
+          <div>
+            <div class="rail-label">Commits</div>
+            <div class="stat-value" id="statCommits">0</div>
+          </div>
+          <div>
+            <div class="rail-label" id="unitsLabel">Lines</div>
+            <div class="stat-value" id="statLoc">0</div>
+          </div>
+          <div>
+            <div class="rail-label">Files</div>
+            <div class="stat-value" id="statFiles">0</div>
+          </div>
+          <div>
+            <div class="rail-label">Releases</div>
+            <div class="stat-value" id="statReleases">0</div>
+          </div>
+          <div>
+            <div class="rail-label">Added</div>
+            <div class="stat-value add" id="statAdd">0</div>
+          </div>
+          <div>
+            <div class="rail-label">Deleted</div>
+            <div class="stat-value del" id="statDel">0</div>
+          </div>
+        </div>
+        <div class="ticker" aria-live="off">
+          <div class="ticker-head">
+            <span class="sha" id="tickerSha">&mdash;</span>
+            <span class="who" id="tickerAuthor"></span>
+            <span class="bot" id="tickerBot" hidden>agent</span>
+          </div>
+          <div class="ticker-subject" id="tickerSubject">Press play to begin deposition.</div>
+          <div class="ticker-paths" id="tickerPaths"></div>
+        </div>
+      </div>
+
+      <div class="panel legend" id="legend"></div>
+    </aside>
+  </div>
+
+  <section class="notes">
+    <div class="note">
+      <h2>What you are watching</h2>
+      <p>
+        <span id="grainNote"></span>
+      </p>
+    </div>
+    <div class="note">
+      <h2>Scrub it</h2>
+      <p>
+        Drag anywhere on the section to seek, or use <code>&larr;</code> <code>&rarr;</code> to step
+        a week at a time. <code>Space</code> toggles playback.
+      </p>
+    </div>
+    <div class="note">
+      <h2>Make your own</h2>
+      <p>
+        Run <code>npx sediment</code> in any repository to build one of these from its history. Add
+        <code>--video</code> for an mp4, or <code>--gif</code> for something you can put in a
+        README.
+      </p>
+    </div>
+  </section>
+
+  <footer class="colophon" id="colophon"></footer>
+</div>
+
+<script>
+  // Baked in by `sediment build`, or handed over by the web app before load.
+  const H = window.SEDIMENT_PAYLOAD || {"title":"iLevyTate/sediment","titleParts":["iLevyTate/","sediment"],"units":"lines","source":"git","meta":{"commits":8,"merges":0,"fileEvents":71,"contributors":2,"filesEverSeen":28,"filesAlive":27,"finalLoc":5348,"spanDays":1,"note":"Every line counted exactly from git. Built with sediment."},"range":[1787286474,1787333416],"maxLoc":5348,"maxLaneLoc":3534,"lanes":["l0","l1","l2","l3","l4","l5","l6"],"laneLabels":["src","(root)","bin","test","examples",".github","other"],"colors":{"light":["#7ea465","#a14a30","#3e7ca8","#b47f22","#32939a","#666f7f","#719353"],"dark":["#a1bf8d","#cb6748","#609cc7","#dda23c","#48bec7","#868fa2","#92b474"]},"authors":[["Claude",1],["Ben Kennedy",0]],"paths":[".gitignore","LICENSE","README.md",".github/workflows/ci.yml",".github/workflows/pages.yml","action.yml","bin/sediment.js","examples/sediment-pages.yml","examples/sediment-pr.yml","examples/sediment.yml","package.json","src/extract.js","src/github.js","src/lanes.js","src/palette.js","src/payload.js","src/player.html","src/record.js","test/github-fixture.mjs","web/app.js","web/index.html",".prettierignore",".prettierrc",".nojekyll","app.js","index.html","demo.json","assets/sediment.gif","package-lock.json",".github/workflows/sediment.yml"],"ticks":[],"commits":[[1787286474,1,166,0,166,3,0,"523e635e","Initial commit"],[1787288411,0,5073,1,5238,21,0,"8582544c","Add the CLI, the GitHub Action, and the hosted front end"],[1787288969,0,698,793,5143,23,0,"471cfc92","Enable Pages from the workflow and budget the API before fetching"],[1787289125,0,22,8,5157,23,0,"32ddda9a","Move Pages off the branch source so the deployment stops being overwritten"],[1787289872,0,40,78,5119,23,0,"a1908477","Serve the site from the repository root instead of a deploy workflow"],[1787324137,0,108,29,5198,24,0,"ef13d836","Open the site on a working example instead of an empty form"],[1787332810,0,251,161,5288,26,0,"28f83639","Rewrite the README and the page copy, and add a GIF of it running"],[1787333416,0,68,8,5348,27,0,"6f548f7e","Fix the action's recording step and run it against this repository"]],"snapshots":[[1787286474,[0,166,0,0,0,0,0]],[1787333416,[3534,1240,230,127,119,98,0]]],"releases":[],"events":[[0,0,1,143,0],[0,0,1,21,1],[0,0,1,2,2],[1,0,5,37,3],[1,0,5,39,4],[1,1,1,149,0],[1,1,1,144,2],[1,0,1,133,5],[1,0,2,226,6],[1,0,4,48,7],[1,0,4,30,8],[1,0,4,36,9],[1,0,1,35,10],[1,0,0,722,11],[1,0,0,421,12],[1,0,0,125,13],[1,0,0,83,14],[1,0,0,188,15],[1,0,0,1966,16],[1,0,0,199,17],[1,0,3,101,18],[1,0,6,153,19],[1,0,6,382,20],[2,1,5,37,3],[2,1,5,44,4],[2,0,1,2,21],[2,0,1,5,22],[2,1,1,153,2],[2,1,1,133,5],[2,1,2,208,6],[2,1,4,53,7],[2,1,4,30,8],[2,1,4,36,9],[2,1,1,40,10],[2,1,0,686,11],[2,1,0,393,12],[2,1,0,123,13],[2,1,0,83,14],[2,1,0,159,15],[2,1,0,1899,16],[2,1,0,187,17],[2,1,3,127,18],[2,1,6,181,19],[2,1,6,394,20],[3,1,5,51,4],[3,1,4,60,7],[4,1,5,49,3],[4,2,5,0,4],[4,0,1,0,23],[4,1,1,157,2],[4,3,1,181,24],[4,1,2,212,6],[4,1,4,53,7],[4,3,1,394,25],[5,1,1,3,21],[5,1,1,168,2],[5,1,1,215,24],[5,1,2,222,6],[5,0,1,1,26],[5,1,1,413,25],[5,1,0,1902,16],[6,1,1,150,0],[6,1,1,177,2],[6,1,1,215,24],[6,0,6,0,27],[6,1,2,230,6],[6,1,1,413,25],[6,0,1,71,28],[6,1,0,1903,16],[7,0,5,49,29],[7,1,1,144,5]]};
+  const UNITS = H.units === 'bytes' ? 'bytes' : 'lines';
+
+  const $ = (id) => document.getElementById(id);
+  const nf = new Intl.NumberFormat('en-US');
+  const MONTHS = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+
+  /** @param {number} ts epoch seconds @returns {string} */
+  function fmtDate(ts) {
+    const d = new Date(ts * 1000);
+    const day = d.getUTCDate().toString().padStart(2, '0');
+    return `${day} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  }
+
+  function compact(n) {
+    if (n >= 1000000) return `${(n / 1000000).toFixed(2)}M`;
+    if (n >= 10000) return `${Math.round(n / 1000)}k`;
+    if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+    return nf.format(Math.round(n));
+  }
+
+  // Grains are seeded, not Math.random, so a recorded run is byte-reproducible.
+  let seed = 0x9e3779b9;
+  function rand() {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let x = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  }
+
+  const CAPTURE = /\bfilm\b/.test(location.hash);
+  if (CAPTURE) document.documentElement.classList.add('film');
+
+  const T0 = H.range[0];
+  const T1 = H.range[1];
+  // A repository whose whole history lands in one second, a single commit or an
+  // import, would otherwise divide by zero on every coordinate.
+  const SPAN = Math.max(1, T1 - T0);
+  const BASE_DURATION = 46; // seconds of video for one full pass at 1x
+
+  /**
+   * Playback is eased, not linear: the opening weeks and the final settle both
+   * hold a little longer than the middle. `u` (linear 0..1) is the master clock
+   * and `t` is always derived from it, so seeking stays exact.
+   */
+  const EASE = 0.55;
+  const ease = (u) => u + (u * u * (3 - 2 * u) - u) * EASE;
+  function easeInverse(target) {
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i < 40; i += 1) {
+      const mid = (lo + hi) / 2;
+      if (ease(mid) < target) lo = mid;
+      else hi = mid;
+    }
+    return (lo + hi) / 2;
+  }
+
+  // ---- theme ----------------------------------------------------------------
+  const theme = {};
+
+  /**
+   * Lane colours arrive in the payload rather than the stylesheet, because the
+   * number of lanes depends on the repository. They are written onto the root
+   * as custom properties so the legend swatches and the canvas read the same
+   * values from the same place.
+   */
+  function applyPalette(dark) {
+    const root = document.documentElement;
+    const set = (dark ? H.colors.dark : H.colors.light) || [];
+    H.lanes.forEach((key, i) => root.style.setProperty(`--lane-${key}`, set[i] || '#888'));
+  }
+
+  function readTheme() {
+    let cs = getComputedStyle(document.documentElement);
+    const probe = hexToRgb(cs.getPropertyValue('--surface').trim());
+    applyPalette((probe.r * 299 + probe.g * 587 + probe.b * 114) / 1000 < 128);
+    cs = getComputedStyle(document.documentElement);
+    const get = (name) => cs.getPropertyValue(name).trim();
+    theme.ink = get('--ink');
+    theme.ink2 = get('--ink-2');
+    theme.muted = get('--muted');
+    theme.line = get('--line');
+    theme.surface = get('--surface');
+    theme.accent = get('--accent');
+    theme.playhead = get('--playhead');
+    theme.grid = get('--grid');
+    theme.ground = get('--ground');
+    theme.lanes = H.lanes.map((name) => get(`--lane-${name}`));
+    const ground = hexToRgb(get('--surface'));
+    theme.dark = (ground.r * 299 + ground.g * 587 + ground.b * 114) / 1000 < 128;
+    theme.laneRgb = theme.lanes.map(hexToRgb);
+  }
+
+  /** @param {string} hex @returns {{r: number, g: number, b: number}} */
+  function hexToRgb(hex) {
+    const h = hex.replace('#', '').trim();
+    const full =
+      h.length === 3
+        ? h
+            .split('')
+            .map((c) => c + c)
+            .join('')
+        : h;
+    const n = parseInt(full.slice(0, 6) || '000000', 16);
+    return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+  }
+
+  const rgba = (c, a) => `rgba(${c.r},${c.g},${c.b},${a})`;
+
+  /**
+   * Mix toward a grey level. Multiplying the channels instead would clip on
+   * whichever channel is already near 255 and swing the hue. That is exactly what
+   * turned the bedding-plane highlights pink on the warmer lanes.
+   * @param {{r:number,g:number,b:number}} c @param {number} target 0..255
+   * @param {number} k 0..1
+   */
+  const mix = (c, target, k) => ({
+    r: Math.round(c.r + (target - c.r) * k),
+    g: Math.round(c.g + (target - c.g) * k),
+    b: Math.round(c.b + (target - c.b) * k),
+  });
+  const lighten = (c, k) => mix(c, 255, k);
+  const darken = (c, k) => mix(c, 0, k);
+
+  // ---- canvas geometry ------------------------------------------------------
+  const canvas = $('section');
+  const ctx = canvas.getContext('2d');
+  const strata = document.createElement('canvas');
+  const sctx = strata.getContext('2d');
+
+  const PAD = { l: 54, r: 10, t: 54, b: 8 };
+  const LABEL_ROWS = 3;
+  const LABEL_LEADING = 12;
+  let W = 0;
+  let Hgt = 0;
+  let plotW = 0;
+  let plotH = 0;
+
+  function sizeCanvas() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cssW = canvas.parentElement.clientWidth;
+    const cssH = CAPTURE
+      ? Math.max(360, window.innerHeight - 214)
+      : Math.max(360, Math.min(Math.round(cssW * 0.52), 620));
+    canvas.style.height = `${cssH}px`;
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    strata.width = canvas.width;
+    strata.height = canvas.height;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    W = cssW;
+    Hgt = cssH;
+    plotW = W - PAD.l - PAD.r;
+    plotH = Hgt - PAD.t - PAD.b;
+    layoutReleases();
+  }
+
+  const xOf = (ts) => PAD.l + ((ts - T0) / SPAN) * plotW;
+  const tsOf = (x) => T0 + ((x - PAD.l) / plotW) * SPAN;
+  const yOf = (loc) => PAD.t + plotH - (loc / H.maxLoc) * plotH;
+
+  /**
+   * Pack release labels into LABEL_ROWS bands, each label dropping to the first
+   * row whose last label has already ended. Tags too dense to fit keep their
+   * tick line but lose the label rather than overprinting a neighbour. Computed
+   * once per resize so labels never move while the animation runs.
+   */
+  let releaseLayout = [];
+  function layoutReleases() {
+    ctx.font = "500 10px 'IBM Plex Mono', ui-monospace, monospace";
+    const rowEnds = new Array(LABEL_ROWS).fill(-Infinity);
+    releaseLayout = [];
+    for (const [ts, tag] of H.releases) {
+      const x = xOf(ts);
+      const width = ctx.measureText(tag).width + 10;
+      let row = rowEnds.findIndex((end) => x > end);
+      const labelled = row !== -1;
+      if (!labelled) row = LABEL_ROWS - 1;
+      else rowEnds[row] = x + width;
+      releaseLayout.push({ ts, x, row, label: labelled ? tag : '' });
+    }
+  }
+
+  /**
+   * Cumulative lane totals at an arbitrary time, linearly interpolated between
+   * the exported tree snapshots.
+   * @param {number} ts
+   * @returns {number[]} cumulative loc, one entry per lane, bottom-up
+   */
+  function stackAt(ts) {
+    const snaps = H.snapshots;
+    if (snaps.length < 2) {
+      // Nothing to interpolate between.
+      const out = [];
+      let acc = 0;
+      for (let i = 0; i < H.lanes.length; i += 1) {
+        acc += snaps[0][1][i];
+        out.push(acc);
+      }
+      return out;
+    }
+    let hi = 1;
+    while (hi < snaps.length - 1 && snaps[hi][0] < ts) hi += 1;
+    const a = snaps[hi - 1];
+    const b = snaps[hi];
+    const f = b[0] === a[0] ? 0 : clamp01((ts - a[0]) / (b[0] - a[0]));
+    const out = [];
+    let acc = 0;
+    for (let i = 0; i < H.lanes.length; i += 1) {
+      acc += a[1][i] + (b[1][i] - a[1][i]) * f;
+      out.push(acc);
+    }
+    return out;
+  }
+
+  // ---- deposition -----------------------------------------------------------
+  let depositedTo = T0;
+
+  function clearStrata() {
+    sctx.clearRect(0, 0, W, Hgt);
+    depositedTo = T0;
+  }
+
+  /**
+   * Paint the sediment slab between depositedTo and ts. Each band gets a
+   * vertical gradient and a lighter bedding plane along its top edge, which is
+   * what stops thirteen flat colour fields from reading as a bar chart.
+   * @param {number} ts
+   */
+  function depositTo(ts) {
+    if (ts <= depositedTo) return;
+    const stepPx = 3;
+    const totalPx = xOf(ts) - xOf(depositedTo);
+    const slices = Math.max(1, Math.ceil(totalPx / stepPx));
+    for (let s = 0; s < slices; s += 1) {
+      const tA = depositedTo + ((ts - depositedTo) * s) / slices;
+      const tB = depositedTo + ((ts - depositedTo) * (s + 1)) / slices;
+      const xa = xOf(tA);
+      const xb = xOf(tB) + 0.6; // hairline overlap kills seams between slices
+      const ca = stackAt(tA);
+      const cb = stackAt(tB);
+      for (let i = 0; i < H.lanes.length; i += 1) {
+        const baseA = i === 0 ? 0 : ca[i - 1];
+        const baseB = i === 0 ? 0 : cb[i - 1];
+        const yTop = yOf(Math.max(ca[i], cb[i]));
+        const yBot = yOf(Math.min(baseA, baseB));
+        const base = theme.laneRgb[i];
+
+        if (yBot - yTop > 1.5) {
+          const grad = sctx.createLinearGradient(0, yTop, 0, yBot);
+          grad.addColorStop(0, rgba(lighten(base, theme.dark ? 0.12 : 0.07), 1));
+          grad.addColorStop(1, rgba(darken(base, theme.dark ? 0.3 : 0.16), 1));
+          sctx.fillStyle = grad;
+        } else {
+          sctx.fillStyle = rgba(base, 1);
+        }
+
+        sctx.beginPath();
+        sctx.moveTo(xa, yOf(baseA));
+        sctx.lineTo(xa, yOf(ca[i]));
+        sctx.lineTo(xb, yOf(cb[i]));
+        sctx.lineTo(xb, yOf(baseB));
+        sctx.closePath();
+        sctx.fill();
+
+        // bedding plane
+        sctx.strokeStyle = rgba(lighten(base, theme.dark ? 0.4 : 0.3), theme.dark ? 0.5 : 0.4);
+        sctx.lineWidth = 1;
+        sctx.beginPath();
+        sctx.moveTo(xa, yOf(ca[i]));
+        sctx.lineTo(xb, yOf(cb[i]));
+        sctx.stroke();
+      }
+    }
+    depositedTo = ts;
+  }
+
+  // ---- grains ---------------------------------------------------------------
+  let grains = [];
+  let rings = [];
+  const MAX_GRAINS = 1100;
+  const MAX_RINGS = 90;
+  const GRAINS_PER_COMMIT = 26;
+
+  function spawnGrain(laneIdx, locAfter, dying, x) {
+    if (grains.length > MAX_GRAINS) return;
+    const r = Math.max(1.2, Math.min(5.4, Math.sqrt(locAfter) * 0.16));
+    grains.push({
+      x: x + (rand() - 0.5) * 38,
+      y: dying ? yOf(stackAt(depositedTo)[laneIdx]) : PAD.t - 10 - rand() * 60,
+      py: 0,
+      vx: (rand() - 0.5) * 9,
+      vy: dying ? -26 - rand() * 30 : 0,
+      lane: laneIdx,
+      r,
+      dying,
+      age: 0,
+      life: dying ? 1.1 : 2.6,
+      settle: false,
+    });
+  }
+
+  function updateGrains(dt) {
+    const stack = stackAt(depositedTo);
+    const next = [];
+    for (const g of grains) {
+      g.age += dt;
+      g.py = g.y;
+      if (g.dying) {
+        g.y += g.vy * dt;
+        g.x += g.vx * dt;
+        g.vy *= 0.97;
+        if (g.age < g.life) next.push(g);
+        continue;
+      }
+      const target = yOf(stack[g.lane]) - g.r;
+      if (!g.settle) {
+        g.vy += 1150 * dt;
+        g.y += g.vy * dt;
+        g.x += g.vx * dt;
+        if (g.y >= target) {
+          g.y = target;
+          g.settle = true;
+          g.age = 0;
+          g.life = 0.9;
+          if (rings.length < MAX_RINGS && g.r > 2.6) {
+            rings.push({
+              x: g.x,
+              y: g.y,
+              lane: g.lane,
+              age: 0,
+              life: 0.42,
+              r0: g.r,
+            });
+          }
+        }
+      }
+      if (!g.settle || g.age < g.life) next.push(g);
+    }
+    grains = next;
+
+    rings = rings.filter((ring) => {
+      ring.age += dt;
+      return ring.age < ring.life;
+    });
+  }
+
+  function drawGrains() {
+    const glow = theme.dark ? 'lighter' : 'source-over';
+
+    // motion streaks first, so the heads sit on top of their own trails
+    ctx.save();
+    ctx.lineCap = 'round';
+    for (const g of grains) {
+      if (g.settle || g.dying) continue;
+      const drop = g.y - g.py;
+      if (drop < 6) continue;
+      // Cap the streak: at low frame rates a frame's travel is enormous and the
+      // trails turn into rain smears rather than motion blur.
+      const len = Math.min(drop, 28);
+      ctx.strokeStyle = rgba(theme.laneRgb[g.lane], Math.min(0.2, drop / 140));
+      ctx.lineWidth = g.r * 1.05;
+      ctx.beginPath();
+      ctx.moveTo(g.x - g.vx * 0.016, g.y - len);
+      ctx.lineTo(g.x, g.y);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    ctx.save();
+    for (const g of grains) {
+      const fade = g.dying
+        ? 1 - g.age / g.life
+        : g.settle
+          ? 1 - g.age / g.life
+          : Math.min(1, g.age * 4);
+      const alpha = clamp01(fade) * (g.dying ? 0.7 : 0.95);
+      if (alpha <= 0.01) continue;
+      const c = theme.laneRgb[g.lane];
+
+      // Additive glow reads as light on falling material, but it accumulates
+      // fast where grains bunch up, so it stays dim and reserved for large grains
+      // and a busy commit glows rather than blowing out to white.
+      if (!g.settle && !g.dying && g.r > 3) {
+        ctx.globalCompositeOperation = glow;
+        const halo = ctx.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.r * 2.6);
+        halo.addColorStop(0, rgba(c, alpha * 0.16));
+        halo.addColorStop(1, rgba(c, 0));
+        ctx.fillStyle = halo;
+        ctx.fillRect(g.x - g.r * 2.6, g.y - g.r * 2.6, g.r * 5.2, g.r * 5.2);
+        ctx.globalCompositeOperation = 'source-over';
+      }
+
+      ctx.fillStyle = rgba(g.dying ? lighten(c, 0.28) : c, alpha);
+      ctx.beginPath();
+      ctx.arc(g.x, g.y, g.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // settle rings
+    ctx.save();
+    for (const ring of rings) {
+      const p = ring.age / ring.life;
+      ctx.strokeStyle = rgba(lighten(theme.laneRgb[ring.lane], 0.45), (1 - p) * 0.26);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(ring.x, ring.y, ring.r0 + p * 13, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // ---- chrome ---------------------------------------------------------------
+  const RELEASE_FADE = SPAN * 0.006;
+
+  function drawChrome(ts) {
+    const x = xOf(ts);
+
+    // the not-yet-deposited future reads as unlit ground
+    ctx.save();
+    ctx.fillStyle = theme.dark ? 'rgba(0,0,0,0.18)' : 'rgba(20,23,31,0.03)';
+    ctx.fillRect(x, PAD.t - 20, Math.max(0, W - PAD.r - x), Hgt - PAD.b - PAD.t + 20);
+    ctx.restore();
+
+    // month gridlines
+    ctx.save();
+    ctx.strokeStyle = theme.line;
+    ctx.globalAlpha = 0.3;
+    ctx.lineWidth = 1;
+    for (const tick of H.ticks) {
+      const tx = Math.round(xOf(tick[0])) + 0.5;
+      ctx.beginPath();
+      ctx.moveTo(tx, PAD.t - 8);
+      ctx.lineTo(tx, Hgt - PAD.b);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // release marks, fading in as the playhead reaches them
+    ctx.save();
+    ctx.font = "500 10px 'IBM Plex Mono', ui-monospace, monospace";
+    ctx.textBaseline = 'alphabetic';
+    for (const rel of releaseLayout) {
+      if (rel.ts > ts) continue;
+      const a = clamp01((ts - rel.ts) / RELEASE_FADE);
+      const rx = Math.round(rel.x) + 0.5;
+      const labelY = 12 + rel.row * LABEL_LEADING;
+      // A repository with a hundred tags cannot label them all; the unlabelled
+      // ones keep a much fainter line so the density still reads without a
+      // picket fence across the section.
+      ctx.strokeStyle = theme.ink2;
+      ctx.globalAlpha = a * (rel.label ? 0.35 : 0.12);
+      ctx.beginPath();
+      ctx.moveTo(rx, rel.label ? labelY + 3 : PAD.t - 4);
+      ctx.lineTo(rx, Hgt - PAD.b);
+      ctx.stroke();
+      if (rel.label) {
+        ctx.globalAlpha = a;
+        ctx.fillStyle = theme.ink2;
+        ctx.fillText(rel.label, rx + 3, labelY - (1 - a) * 3);
+      }
+    }
+    ctx.restore();
+
+    // playhead: a soft wash trailing the deposition front, then the line itself
+    ctx.save();
+    const wash = ctx.createLinearGradient(x - 90, 0, x, 0);
+    wash.addColorStop(0, rgba(hexToRgb(theme.playhead), 0));
+    wash.addColorStop(1, rgba(hexToRgb(theme.playhead), theme.dark ? 0.16 : 0.1));
+    ctx.fillStyle = wash;
+    ctx.fillRect(x - 90, PAD.t - 20, 90, Hgt - PAD.b - PAD.t + 20);
+
+    ctx.strokeStyle = theme.playhead;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x, PAD.t - 20);
+    ctx.lineTo(x, Hgt - PAD.b);
+    ctx.stroke();
+
+    // bright bead riding the top of the sediment
+    const surfaceY = yOf(stackAt(ts)[H.lanes.length - 1]);
+    const bead = ctx.createRadialGradient(x, surfaceY, 0, x, surfaceY, 22);
+    bead.addColorStop(0, rgba(hexToRgb(theme.playhead), 0.55));
+    bead.addColorStop(1, rgba(hexToRgb(theme.playhead), 0));
+    ctx.fillStyle = bead;
+    ctx.fillRect(x - 22, surfaceY - 22, 44, 44);
+    ctx.fillStyle = theme.playhead;
+    ctx.beginPath();
+    ctx.arc(x, surfaceY, 2.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  /**
+   * Lines-of-code scale. Without it the section is a picture of growth rather
+   * than a measurement, so the gridlines run over the sediment at low alpha and
+   * the labels sit in a reserved left gutter.
+   */
+  /**
+   * Gridline spacing has to suit the magnitude: line counts run to hundreds of
+   * thousands, byte counts to tens of millions. Pick the nearest 1/2/2.5/5 x
+   * power of ten that lands about six lines on the axis.
+   */
+  function niceStep(max, target = 6) {
+    const raw = Math.max(1, max) / target;
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    for (const m of [1, 2, 2.5, 5]) if (raw <= mag * m) return mag * m;
+    return mag * 10;
+  }
+
+  /** @param {number} v @param {number} step */
+  function axisLabel(v, step) {
+    if (v === 0) return '0';
+    if (v >= 1e9) return `${+(v / 1e9).toFixed(step < 1e9 ? 1 : 0)}G`;
+    if (v >= 1e6) return `${+(v / 1e6).toFixed(step < 1e6 ? 1 : 0)}M`;
+    if (v >= 1e3) return `${+(v / 1e3).toFixed(step < 1e3 ? 1 : 0)}k`;
+    return String(Math.round(v));
+  }
+
+  const GRID_STEP = niceStep(H.maxLoc);
+
+  function drawScale() {
+    ctx.save();
+    ctx.font = "400 10px 'IBM Plex Mono', ui-monospace, monospace";
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let v = 0; v <= H.maxLoc; v += GRID_STEP) {
+      const y = Math.round(yOf(v)) + 0.5;
+      ctx.strokeStyle = theme.grid;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(PAD.l, y);
+      ctx.lineTo(W - PAD.r, y);
+      ctx.stroke();
+      ctx.fillStyle = theme.muted;
+      ctx.fillText(axisLabel(v, GRID_STEP), PAD.l - 9, y);
+    }
+    ctx.strokeStyle = theme.line;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(PAD.l - 0.5, PAD.t - 20);
+    ctx.lineTo(PAD.l - 0.5, Hgt - PAD.b);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawVignette() {
+    ctx.save();
+    const g = ctx.createRadialGradient(
+      W / 2,
+      Hgt / 2,
+      Math.min(W, Hgt) * 0.35,
+      W / 2,
+      Hgt / 2,
+      Math.max(W, Hgt) * 0.78
+    );
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(1, theme.dark ? 'rgba(0,0,0,0.28)' : 'rgba(20,23,31,0.08)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, Hgt);
+    ctx.restore();
+  }
+
+  // ---- title cards ----------------------------------------------------------
+  /** @param {number} p @param {number} a @param {number} b linear ramp a..b -> 0..1 */
+  const seg = (p, a, b) => clamp01((p - a) / (b - a));
+  const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+
+  /**
+   * The wordmark, set the same way on the opening and closing cards so the film
+   * bookends itself. Canvas letterSpacing is Chromium-only; elsewhere it is
+   * silently ignored and the type simply sets tighter.
+   * @param {number} cx @param {number} y @param {number} size @param {number} a
+   */
+  function drawWordmark(cx, y, size, a) {
+    ctx.textAlign = 'center';
+    ctx.letterSpacing = `${(size * 0.012).toFixed(2)}px`;
+    ctx.font = `700 ${size}px 'IBM Plex Sans Condensed', ui-sans-serif, sans-serif`;
+    const [strato, strata] = H.titleParts;
+    const wA = ctx.measureText(strato).width;
+    const wB = ctx.measureText(strata).width;
+    const left = cx - (wA + wB) / 2;
+    ctx.textAlign = 'left';
+    ctx.globalAlpha = a;
+    ctx.fillStyle = theme.ink;
+    ctx.fillText(strato, left, y);
+    ctx.fillStyle = theme.accent;
+    ctx.fillText(strata, left + wA, y);
+    ctx.letterSpacing = '0px';
+    ctx.textAlign = 'center';
+  }
+
+  /** @param {number} cx @param {number} y @param {number} half @param {number} a */
+  function drawRule(cx, y, half, a) {
+    if (half <= 0 || a <= 0) return;
+    const grad = ctx.createLinearGradient(cx - half, 0, cx + half, 0);
+    const c = hexToRgb(theme.accent);
+    grad.addColorStop(0, rgba(c, 0));
+    grad.addColorStop(0.5, rgba(c, a * 0.85));
+    grad.addColorStop(1, rgba(c, 0));
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx - half, y + 0.5);
+    ctx.lineTo(cx + half, y + 0.5);
+    ctx.stroke();
+  }
+
+  const INTRO = 2.8;
+  let introT = 0;
+
+  function drawIntro() {
+    if (introT >= INTRO) return;
+    const p = introT / INTRO;
+    const cover = 1 - seg(p, 0.74, 1); // the card clears as the instrument arrives
+    const cx = W / 2;
+    const cy = Hgt / 2;
+
+    ctx.save();
+    ctx.fillStyle = theme.ground;
+    ctx.globalAlpha = cover;
+    ctx.fillRect(0, 0, W, Hgt);
+    ctx.globalAlpha = 1;
+
+    const markA = seg(p, 0.08, 0.46) * cover;
+    const rise = (1 - easeOut(seg(p, 0.08, 0.5))) * 16;
+    drawWordmark(cx, cy - 20 + rise, Math.min(88, W * 0.062), markA);
+
+    drawRule(cx, cy + 4 + rise, easeOut(seg(p, 0.26, 0.66)) * Math.min(260, W * 0.2), cover);
+
+    ctx.globalAlpha = seg(p, 0.4, 0.72) * cover;
+    ctx.fillStyle = theme.ink2;
+    ctx.font = "400 15px 'IBM Plex Mono', ui-monospace, monospace";
+    ctx.fillText(
+      `${H.title} · a stratigraphic record of ${nf.format(H.meta.commits)} commits`,
+      cx,
+      cy + 32 + rise
+    );
+
+    ctx.globalAlpha = seg(p, 0.52, 0.84) * cover;
+    ctx.fillStyle = theme.muted;
+    ctx.font = "400 12px 'IBM Plex Mono', ui-monospace, monospace";
+    ctx.fillText(`${fmtDate(T0)}  to  ${fmtDate(T1)}`, cx, cy + 58 + rise);
+    ctx.restore();
+  }
+
+  // ---- end card -------------------------------------------------------------
+  let endAlpha = 0;
+
+  function drawEndCard() {
+    if (endAlpha <= 0.001) return;
+    const a = clamp01(endAlpha);
+    const cx = W / 2;
+    const cy = Hgt / 2;
+    const rise = (1 - easeOut(a)) * 14;
+
+    ctx.save();
+    ctx.fillStyle = theme.dark ? `rgba(4,5,8,${a * 0.76})` : `rgba(246,247,250,${a * 0.84})`;
+    ctx.fillRect(0, 0, W, Hgt);
+
+    drawWordmark(cx, cy - 38 + rise, Math.min(64, W * 0.045), a);
+    drawRule(cx, cy - 12 + rise, easeOut(a) * Math.min(240, W * 0.185), a);
+
+    ctx.textAlign = 'center';
+    ctx.globalAlpha = a;
+    ctx.fillStyle = theme.ink;
+    ctx.font = "500 18px 'IBM Plex Mono', ui-monospace, monospace";
+    ctx.fillText(
+      `${nf.format(H.meta.commits)} commits   ${H.meta.spanDays} days   ${nf.format(H.meta.finalLoc)} ${UNITS}`,
+      cx,
+      cy + 20 + rise
+    );
+
+    ctx.fillStyle = theme.ink2;
+    ctx.font = "400 13px 'IBM Plex Mono', ui-monospace, monospace";
+    ctx.fillText(
+      `${nf.format(H.meta.filesAlive)} files   ${H.meta.contributors} contributors   ${H.releases.length} releases`,
+      cx,
+      cy + 46 + rise
+    );
+
+    ctx.globalAlpha = a * seg(a, 0.55, 1);
+    ctx.fillStyle = theme.muted;
+    ctx.font = "400 11px 'IBM Plex Mono', ui-monospace, monospace";
+    ctx.fillText(H.meta.note || 'built with sediment', cx, cy + 78 + rise);
+    ctx.restore();
+  }
+
+  // ---- playback state -------------------------------------------------------
+  let u = 0; // linear master clock, 0..1
+  let t = T0;
+  let playing = false;
+  let speed = 1;
+  let commitCursor = 0;
+  let eventCursor = 0;
+  let releaseCount = 0;
+  let totals = { commits: 0, add: 0, del: 0, loc: 0, files: 0 };
+  // Counters chase their targets instead of snapping, so the readout rolls.
+  let shown = { commits: 0, add: 0, del: 0, loc: 0, files: 0, releases: 0 };
+  let lastPaths = ['', '', '', ''];
+  const laneRows = [];
+  const pathSlots = [];
+  let laneShown = null;
+
+  function snapShown() {
+    shown = { ...totals, releases: releaseCount };
+    laneShown = null;
+    easeCounters(0); // dt of 0 means k === 1, i.e. snap straight to target
+  }
+
+  /** Jump straight to the instrument. Any deliberate interaction does this. */
+  function skipIntro() {
+    if (introT >= INTRO) return;
+    introT = INTRO;
+    document.documentElement.style.setProperty('--chrome', '1');
+  }
+
+  function resetPlayback() {
+    u = 0;
+    t = T0;
+    endAlpha = 0;
+    commitCursor = 0;
+    eventCursor = 0;
+    releaseCount = 0;
+    totals = { commits: 0, add: 0, del: 0, loc: 0, files: 0 };
+    grains = [];
+    rings = [];
+    lastPaths = ['', '', '', ''];
+    snapShown();
+    clearStrata();
+    $('tickerSha').textContent = '';
+    $('tickerAuthor').textContent = '';
+    $('tickerBot').hidden = true;
+    $('tickerSubject').textContent = 'Press play to begin deposition.';
+  }
+
+  /** @param {any[]} c a packed commit record */
+  function paintTicker(c) {
+    $('tickerSha').textContent = c[7];
+    const author = H.authors[c[1]];
+    $('tickerAuthor').textContent = author[0];
+    $('tickerBot').hidden = !author[1];
+    $('tickerSubject').textContent = c[8];
+  }
+
+  /**
+   * Advance the commit/event cursors up to `ts`, optionally spawning grains.
+   * @param {number} ts
+   * @param {boolean} visual
+   */
+  function advanceTo(ts, visual) {
+    const x = xOf(ts);
+    let spawned = 0;
+    let fresh = null;
+    while (commitCursor < H.commits.length && H.commits[commitCursor][0] <= ts) {
+      const c = H.commits[commitCursor];
+      totals.commits += 1;
+      totals.add += c[2];
+      totals.del += c[3];
+      totals.loc = c[4];
+      totals.files = c[5];
+      if (visual) {
+        fresh = [];
+        paintTicker(c);
+      }
+      commitCursor += 1;
+    }
+    while (eventCursor < H.events.length && H.events[eventCursor][0] < commitCursor) {
+      const e = H.events[eventCursor];
+      if (visual && spawned < GRAINS_PER_COMMIT * 3) {
+        spawnGrain(e[2], e[3], e[1] === 2, x);
+        spawned += 1;
+        if (fresh && fresh.length < 4) fresh.push(H.paths[e[4]]);
+      }
+      eventCursor += 1;
+    }
+    if (fresh) lastPaths = [fresh[0] || '', fresh[1] || '', fresh[2] || '', fresh[3] || ''];
+    while (releaseCount < H.releases.length && H.releases[releaseCount][0] <= ts) releaseCount += 1;
+  }
+
+  function seek(ts) {
+    skipIntro();
+    const target = Math.max(T0, Math.min(T1, ts));
+    if (target < t) resetPlayback();
+    u = easeInverse((target - T0) / SPAN);
+    advanceTo(target, false);
+    depositTo(target);
+    t = target;
+    grains = [];
+    rings = [];
+    endAlpha = t >= T1 ? 1 : 0;
+    // advanceTo ran silently, so the ticker still shows whatever preceded the
+    // seek (or the reset placeholder). Catch it up to the commit under the head.
+    if (commitCursor > 0) {
+      paintTicker(H.commits[commitCursor - 1]);
+      const at = commitCursor - 1;
+      const seen = [];
+      for (let e = eventCursor - 1; e >= 0 && seen.length < 4; e -= 1) {
+        if (H.events[e][0] !== at) break;
+        seen.push(H.paths[H.events[e][4]]);
+      }
+      seen.reverse();
+      lastPaths = [seen[0] || '', seen[1] || '', seen[2] || '', seen[3] || ''];
+    }
+    snapShown();
+    updateReadouts();
+    render();
+  }
+
+  // ---- readouts -------------------------------------------------------------
+  function buildLegend() {
+    const legend = $('legend');
+    legend.replaceChildren();
+    const heading = document.createElement('div');
+    heading.className = 'rail-label';
+    heading.textContent = `Strata, ${UNITS} alive`;
+    legend.appendChild(heading);
+    for (let i = H.lanes.length - 1; i >= 0; i -= 1) {
+      const row = document.createElement('div');
+      row.className = 'legend-row';
+      const sw = document.createElement('span');
+      sw.className = 'swatch';
+      sw.style.background = `var(--lane-${H.lanes[i]})`;
+      const mid = document.createElement('div');
+      const name = document.createElement('div');
+      name.className = 'legend-name';
+      name.textContent = H.laneLabels[i];
+      const bar = document.createElement('div');
+      bar.className = 'legend-bar';
+      const fill = document.createElement('i');
+      fill.style.background = `var(--lane-${H.lanes[i]})`;
+      fill.style.width = '0%';
+      bar.appendChild(fill);
+      mid.append(name, bar);
+      const val = document.createElement('div');
+      val.className = 'legend-value';
+      val.textContent = '0';
+      row.append(sw, mid, val);
+      legend.appendChild(row);
+      laneRows[i] = { fill, val, lastWidth: -1, lastText: '' };
+    }
+  }
+
+  /** Four permanent slots, never rebuilt, only retitled. */
+  function buildPathSlots() {
+    const host = $('tickerPaths');
+    host.replaceChildren();
+    for (let i = 0; i < 4; i += 1) {
+      const span = document.createElement('span');
+      host.appendChild(span);
+      pathSlots.push(span);
+    }
+  }
+
+  /** @param {number} dt seconds; 0 snaps instantly */
+  function easeCounters(dt) {
+    const k = dt > 0 ? 1 - Math.exp(-dt * 11) : 1;
+    shown.commits += (totals.commits - shown.commits) * k;
+    shown.add += (totals.add - shown.add) * k;
+    shown.del += (totals.del - shown.del) * k;
+    shown.loc += (totals.loc - shown.loc) * k;
+    shown.files += (totals.files - shown.files) * k;
+    shown.releases += (releaseCount - shown.releases) * k;
+
+    const stack = stackAt(t);
+    if (!laneShown) laneShown = new Array(H.lanes.length).fill(0);
+    for (let i = 0; i < H.lanes.length; i += 1) {
+      const target = stack[i] - (i === 0 ? 0 : stack[i - 1]);
+      laneShown[i] += (target - laneShown[i]) * k;
+    }
+  }
+
+  function updateReadouts() {
+    $('clock').textContent = fmtDate(t);
+    $('statCommits').textContent = nf.format(Math.round(shown.commits));
+    $('statLoc').textContent = compact(shown.loc);
+    $('statFiles').textContent = nf.format(Math.round(shown.files));
+    $('statReleases').textContent = nf.format(Math.round(shown.releases));
+    $('statAdd').textContent = `+${compact(shown.add)}`;
+    $('statDel').textContent = `−${compact(shown.del)}`;
+    const pct = ((t - T0) / SPAN) * 100;
+    $('progressLabel').textContent = `${Math.round(pct)}%`;
+    $('progressFill').style.width = `${pct.toFixed(2)}%`;
+
+    for (let i = 0; i < 4; i += 1) {
+      if (pathSlots[i] && pathSlots[i].textContent !== lastPaths[i]) {
+        pathSlots[i].textContent = lastPaths[i];
+      }
+    }
+
+    for (let i = 0; i < H.lanes.length; i += 1) {
+      const row = laneRows[i];
+      if (!row) continue;
+      // Bars are linear against the largest lane so they stay comparable, but a
+      // lane that is merely small must not read as absent: anything non-zero
+      // keeps a visible sliver. (Clamping before the /10 used to cap every lane
+      // over a tenth of the maximum at an identical 10% stub.)
+      const ratio = laneShown[i] / H.maxLaneLoc;
+      const pct =
+        laneShown[i] < 0.5 ? 0 : Math.min(100, Math.max(1.5, Math.round(ratio * 1000) / 10));
+      if (pct !== row.lastWidth) {
+        row.fill.style.width = `${pct}%`;
+        row.lastWidth = pct;
+      }
+      const text = compact(laneShown[i]);
+      if (text !== row.lastText) {
+        row.val.textContent = text;
+        row.lastText = text;
+      }
+    }
+
+    $('canvasDesc').textContent =
+      `${fmtDate(t)}: ${nf.format(totals.commits)} commits, ` +
+      `${nf.format(totals.loc)} lines across ${nf.format(totals.files)} files.`;
+  }
+
+  // ---- frame ----------------------------------------------------------------
+  function render() {
+    ctx.clearRect(0, 0, W, Hgt);
+    ctx.drawImage(strata, 0, 0, W, Hgt);
+    drawScale();
+    drawChrome(t);
+    drawGrains();
+    drawVignette();
+    drawEndCard();
+    drawIntro();
+  }
+
+  /** One tick of simulation. Shared by live playback and the recorder. */
+  function tick(dt) {
+    if (introT < INTRO) {
+      introT = Math.min(INTRO, introT + dt);
+      document.documentElement.style.setProperty(
+        '--chrome',
+        easeOut(seg(introT / INTRO, 0.62, 1)).toFixed(3)
+      );
+      render();
+      return;
+    }
+    if (u < 1) {
+      u = Math.min(1, u + (dt / BASE_DURATION) * speed);
+      t = T0 + SPAN * ease(u);
+      advanceTo(t, true);
+      depositTo(t);
+    } else if (endAlpha < 1) {
+      endAlpha = Math.min(1, endAlpha + dt / 1.1);
+    }
+    updateGrains(dt);
+    easeCounters(dt);
+    updateReadouts();
+    render();
+  }
+
+  let lastFrame = 0;
+  function frame(now) {
+    const dt = lastFrame ? Math.min(0.05, (now - lastFrame) / 1000) : 0;
+    lastFrame = now;
+    if (playing) {
+      tick(dt);
+      if (u >= 1 && endAlpha >= 1) setPlaying(false);
+    } else {
+      updateGrains(dt);
+      render();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function setPlaying(next) {
+    playing = next;
+    $('play').textContent = next ? 'Pause' : u >= 1 ? 'Replay' : 'Play';
+  }
+
+  // ---- wiring ---------------------------------------------------------------
+  function rebuild() {
+    sizeCanvas();
+    readTheme();
+    const at = t;
+    clearStrata();
+    depositTo(at);
+    render();
+  }
+
+  function init() {
+    readTheme();
+    sizeCanvas();
+    buildLegend();
+    buildPathSlots();
+
+    // Repo name in the masthead, two-tone like the title card.
+    document.title = H.title;
+    const mark = $('wordmark');
+    mark.replaceChildren(document.createTextNode(H.titleParts[0]));
+    const em = document.createElement('em');
+    em.textContent = H.titleParts[1];
+    mark.appendChild(em);
+
+    $('standfirst').textContent =
+      `Every commit this repository has ever taken, deposited as sediment. Time runs left to ` +
+      `right; each band is a region of the tree, its thickness the ${UNITS} alive at that moment.`;
+
+    $('unitsLabel').textContent = UNITS === 'bytes' ? 'Bytes' : 'Lines';
+
+    $('grainNote').textContent = H.events.length
+      ? `Grains fall on every file event. One per file touched by the commit under the ` +
+        `playhead, sized by the file's ${UNITS} and coloured by where it lives. Deletions rise ` +
+        `and drift off instead of settling.`
+      : `This build has commit-level history only, so the section grows without per-file grains. ` +
+        `Run sediment locally for the full file-by-file record.`;
+
+    $('mastheadMeta').replaceChildren(
+      document.createTextNode(
+        `${nf.format(H.meta.commits)} commits · ${nf.format(H.meta.fileEvents)} file events`
+      ),
+      document.createElement('br'),
+      document.createTextNode(`${fmtDate(T0)} to ${fmtDate(T1)} · ${H.meta.spanDays} days`)
+    );
+
+    const axis = $('axis');
+    axis.replaceChildren();
+    for (const tick of H.ticks) {
+      const span = document.createElement('span');
+      span.textContent = tick[1];
+      axis.appendChild(span);
+    }
+
+    $('colophon').textContent =
+      `${H.title}. ${nf.format(H.meta.commits)} commits ` +
+      `(${nf.format(H.meta.merges)} merges) by ${H.meta.contributors} contributors, ` +
+      `${nf.format(H.meta.filesAlive)} files and ${nf.format(H.meta.finalLoc)} ${UNITS} at HEAD. ` +
+      (H.meta.note || 'Built with sediment.');
+
+    resetPlayback();
+    updateReadouts();
+    render();
+
+    document.documentElement.style.setProperty('--chrome', '0');
+
+    if (CAPTURE) {
+      setPlaying(false);
+      return; // the recorder drives every frame through window.__strata
+    }
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (reduced.matches) {
+      skipIntro();
+      seek(T1);
+      setPlaying(false);
+    } else {
+      setPlaying(true);
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  /**
+   * Frame-accurate control surface for off-screen recording. Stepping by a
+   * fixed dt instead of wall-clock time keeps the exported video independent of
+   * how fast the capturing machine can screenshot.
+   */
+  window.__strata = {
+    /** Seconds of title sequence the recorder must budget for before deposition. */
+    intro: INTRO,
+    reset() {
+      seed = 0x9e3779b9;
+      introT = 0;
+      document.documentElement.style.setProperty('--chrome', '0');
+      resetPlayback();
+      updateReadouts();
+      render();
+    },
+    /** @param {number} rate multiplier over the 46s base pass */
+    setSpeed(rate) {
+      speed = rate;
+    },
+    /** @param {number} dt seconds of video time to advance @returns {number} 0..1 */
+    step(dt) {
+      tick(dt);
+      return u;
+    },
+    /** @returns {boolean} true once the section is deposited and the card has landed */
+    done() {
+      return u >= 1 && endAlpha >= 1;
+    },
+  };
+
+  $('play').addEventListener('click', () => {
+    skipIntro();
+    if (u >= 1) {
+      resetPlayback();
+      updateReadouts();
+    }
+    setPlaying(!playing);
+  });
+
+  $('restart').addEventListener('click', () => {
+    skipIntro();
+    resetPlayback();
+    updateReadouts();
+    render();
+    setPlaying(true);
+  });
+
+  for (const btn of document.querySelectorAll('[data-speed]')) {
+    btn.addEventListener('click', () => {
+      speed = Number(btn.dataset.speed);
+      for (const other of document.querySelectorAll('[data-speed]')) {
+        other.setAttribute('aria-pressed', String(other === btn));
+      }
+    });
+  }
+
+  let dragging = false;
+  const seekFromEvent = (ev) => {
+    const rect = canvas.getBoundingClientRect();
+    seek(tsOf(((ev.clientX - rect.left) / rect.width) * W));
+  };
+  canvas.addEventListener('pointerdown', (ev) => {
+    dragging = true;
+    setPlaying(false);
+    canvas.setPointerCapture(ev.pointerId);
+    seekFromEvent(ev);
+  });
+  canvas.addEventListener('pointermove', (ev) => {
+    if (dragging) seekFromEvent(ev);
+  });
+  canvas.addEventListener('pointerup', () => {
+    dragging = false;
+  });
+
+  window.addEventListener('keydown', (ev) => {
+    if (ev.target !== document.body) return;
+    if (ev.code === 'Space') {
+      ev.preventDefault();
+      setPlaying(!playing);
+    } else if (ev.code === 'ArrowRight') {
+      ev.preventDefault();
+      seek(t + 604800);
+    } else if (ev.code === 'ArrowLeft') {
+      ev.preventDefault();
+      seek(t - 604800);
+    }
+  });
+
+  let resizeTimer = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(rebuild, 150);
+  });
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', rebuild);
+  new MutationObserver(rebuild).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  });
+
+  init();
+</script>
