@@ -1,5 +1,5 @@
 name: Sediment
-description: Render this repository's history as a stratigraphic film — an interactive page, and optionally an mp4 and gif.
+description: Render this repository's history as a stratigraphic film. An interactive page, and optionally an mp4 and gif.
 author: iLevyTate
 branding:
   icon: layers
@@ -13,7 +13,7 @@ inputs:
     description: Also record an mp4. Installs ffmpeg and a headless Chromium, so it adds a few minutes.
     default: 'false'
   gif:
-    description: Also write a gif next to the mp4 — this is the file you can embed in a README.
+    description: Also write a gif next to the mp4. This is the file you embed in a README.
     default: 'false'
   seconds:
     description: Length of the deposition in the video.
@@ -28,8 +28,11 @@ inputs:
     description: Video height.
     default: '1080'
   gif-width:
-    description: Gif width. Smaller keeps READMEs light.
-    default: '900'
+    description: Gif width in pixels. Smaller keeps READMEs light.
+    default: '760'
+  gif-fps:
+    description: Gif frame rate.
+    default: '11'
   theme:
     description: dark or light.
     default: dark
@@ -67,7 +70,7 @@ runs:
       run: |
         # actions/checkout defaults to depth 1; sediment needs every commit.
         if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
-          echo "Repository is shallow — fetching the rest."
+          echo "Repository is shallow, fetching the rest."
           git fetch --unshallow --quiet || git fetch --depth=2147483647 --quiet
         fi
         git fetch --tags --quiet || true
@@ -79,11 +82,18 @@ runs:
     - name: Install recording tools
       if: inputs.video == 'true' || inputs.gif == 'true'
       shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
       run: |
+        set -euo pipefail
         if ! command -v ffmpeg >/dev/null 2>&1; then
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends ffmpeg
         fi
+        # Install into the action's own tree, not the workspace. record.js reaches
+        # playwright with a dynamic `import()`, and ESM resolves that from the
+        # importing file's directory. NODE_PATH does not apply to ESM at all.
+        cd "$ACTION_PATH"
         npm install --no-save --silent playwright@^1.49.0
         npx playwright install --with-deps chromium
 
@@ -100,10 +110,11 @@ runs:
           args+=(--video --seconds "${{ inputs.seconds }}" --fps "${{ inputs.fps }}"
                  --width "${{ inputs.width }}" --height "${{ inputs.height }}"
                  --theme "${{ inputs.theme }}")
-          [ "${{ inputs.gif }}" = "true" ] && args+=(--gif)
+          if [ "${{ inputs.gif }}" = "true" ]; then
+            args+=(--gif --gif-width "${{ inputs['gif-width'] }}" --gif-fps "${{ inputs['gif-fps'] }}")
+          fi
         fi
-        # `playwright` resolves from the workspace install above.
-        NODE_PATH="$PWD/node_modules" node "$ACTION_PATH/bin/sediment.js" "${args[@]}"
+        node "$ACTION_PATH/bin/sediment.js" "${args[@]}"
 
         out="${{ inputs.output }}"
         echo "html=$out/index.html" >> "$GITHUB_OUTPUT"

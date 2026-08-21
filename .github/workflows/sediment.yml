@@ -1,0 +1,49 @@
+# Renders this repository's own history with its own action, so the embed path
+# in the README is exercised rather than assumed. The result is force-pushed to
+# the `sediment` branch, which is what the README image link points at.
+name: sediment
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - action.yml
+      - bin/**
+      - src/**
+      - .github/workflows/sediment.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sediment-self
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: sediment
+        uses: ./
+        with:
+          video: 'true'
+          gif: 'true'
+          seconds: '18'
+          width: '1280'
+          height: '720'
+          gif-width: '760'
+          publish-branch: sediment
+
+      - name: Show what landed
+        run: |
+          echo "page: ${{ steps.sediment.outputs.html }}"
+          echo "mp4:  ${{ steps.sediment.outputs.mp4 }}"
+          echo "gif:  ${{ steps.sediment.outputs.gif }}"
+          ls -la sediment/
