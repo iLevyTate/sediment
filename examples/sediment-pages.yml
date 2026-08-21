@@ -1,8 +1,12 @@
 # Publish the film to GitHub Pages, so it lives at a real URL you can link or
 # iframe into a personal site.
 #
-# Copy to .github/workflows/sediment-pages.yml, then set
-# Settings -> Pages -> Source to "GitHub Actions".
+# Copy to .github/workflows/sediment-pages.yml.
+#
+# One manual step first: Settings -> Pages -> Source -> "GitHub Actions". The
+# workflow token can create Pages *deployments* but is not allowed to change
+# that setting, so it cannot do this for you — a run against a repository still
+# set to "Deploy from a branch" fails with a 404 from deploy-pages.
 #
 name: Sediment (Pages)
 
@@ -29,17 +33,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      # Pages may already exist in legacy (branch) mode — in which case every
-      # push also kicks off a Jekyll build that overwrites this deployment.
-      # `configure-pages` enables Pages but will not move an existing site off
-      # the branch source, so ask for the workflow source explicitly. PUT
-      # switches an existing site; POST creates one that does not exist yet.
-      - name: Make Actions the Pages source
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh api -X PUT "repos/$GITHUB_REPOSITORY/pages" -f build_type=workflow \
-            || gh api -X POST "repos/$GITHUB_REPOSITORY/pages" -f build_type=workflow
       - uses: actions/configure-pages@v5
       - uses: iLevyTate/sediment@main
         with:

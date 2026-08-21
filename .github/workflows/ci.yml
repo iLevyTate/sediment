@@ -33,5 +33,17 @@ jobs:
       - name: The GitHub source path, against fixtures rather than the network
         run: node test/github-fixture.mjs . /tmp/web.html
 
-      - name: Assemble the Pages site
-        run: node bin/sediment.js web-assets --out _site && test -s _site/lib/player.html
+      - name: Assemble the static site
+        run: |
+          node bin/sediment.js web-assets --out _site
+          test -s _site/src/player.html
+          test -s _site/app.js
+          test -s _site/index.html
+
+      - name: The repository root serves as the site, so check its paths resolve
+        run: |
+          test -s index.html && test -s app.js && test -f .nojekyll
+          for f in $(grep -o "\./src/[a-z.]*\.\(js\|html\)" app.js | sort -u); do
+            test -s "$f" || { echo "app.js imports missing $f"; exit 1; }
+          done
+          echo "root site paths ok"

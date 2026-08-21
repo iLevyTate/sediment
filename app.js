@@ -7,8 +7,8 @@
  * download button hands you, because it is the same string.
  */
 
-import { fetchHistory, parseRepo, checkRate, planBudget } from './lib/github.js';
-import { buildPayload, buildHtml } from './lib/payload.js';
+import { fetchHistory, parseRepo, checkRate, planBudget } from './src/github.js';
+import { buildPayload, buildHtml } from './src/payload.js';
 
 const $ = (id) => document.getElementById(id);
 const TOKEN_KEY = 'sediment.token';
@@ -16,7 +16,7 @@ const TOKEN_KEY = 'sediment.token';
 let templatePromise = null;
 const playerTemplate = () => {
   if (!templatePromise) {
-    templatePromise = fetch(new URL('./lib/player.html', import.meta.url)).then((r) => {
+    templatePromise = fetch(new URL('./src/player.html', import.meta.url)).then((r) => {
       if (!r.ok) throw new Error('could not load the player template');
       return r.text();
     });

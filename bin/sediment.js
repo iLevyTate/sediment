@@ -95,21 +95,25 @@ function log(msg, progress = false) {
 }
 const kb = (n) => (n < 1048576 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1048576).toFixed(1)} MB`);
 
-/** Assemble the Pages site: the web app plus the modules it shares with the CLI. */
+/**
+ * Assemble a standalone copy of the site.
+ *
+ * The repository root already *is* the site — index.html imports from src/ —
+ * so this mirrors that layout rather than inventing a second one, and the same
+ * relative paths work whether you serve the repo or the copy.
+ */
 function webAssets(outDir) {
   const dest = path.resolve(outDir);
   fs.rmSync(dest, { recursive: true, force: true });
-  fs.mkdirSync(path.join(dest, 'lib'), { recursive: true });
-  for (const f of fs.readdirSync(path.join(ROOT, 'web'))) {
-    const from = path.join(ROOT, 'web', f);
-    if (fs.statSync(from).isFile()) fs.copyFileSync(from, path.join(dest, f));
+  fs.mkdirSync(path.join(dest, 'src'), { recursive: true });
+  for (const f of ['index.html', 'app.js']) {
+    fs.copyFileSync(path.join(ROOT, f), path.join(dest, f));
   }
-  for (const f of ['palette.js', 'lanes.js', 'payload.js', 'github.js']) {
-    fs.copyFileSync(path.join(ROOT, 'src', f), path.join(dest, 'lib', f));
+  for (const f of ['palette.js', 'lanes.js', 'payload.js', 'github.js', 'player.html']) {
+    fs.copyFileSync(path.join(ROOT, 'src', f), path.join(dest, 'src', f));
   }
-  fs.copyFileSync(TEMPLATE, path.join(dest, 'lib', 'player.html'));
   fs.writeFileSync(path.join(dest, '.nojekyll'), '');
-  log(`assembled ${path.relative(process.cwd(), dest)}/ for GitHub Pages`);
+  log(`assembled ${path.relative(process.cwd(), dest)}/ for static hosting`);
 }
 
 async function main() {
