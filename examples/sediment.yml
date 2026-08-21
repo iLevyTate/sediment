@@ -1,20 +1,24 @@
 # Keep a live history film for your repository.
 #
-# Copy to .github/workflows/sediment.yml. It renders on every push to the
-# default branch and once a week, force-pushes the results to a `sediment`
-# branch, and leaves you with stable URLs to link from your README:
+# Copy to .github/workflows/sediment.yml. It force-pushes the results to a
+# `sediment` branch, which gives you stable URLs to link from your README:
 #
 #   ![history](https://raw.githubusercontent.com/OWNER/REPO/sediment/sediment.gif)
-#   [interactive](https://raw.githack.com/OWNER/REPO/sediment/index.html)
+#
+# The branch also carries sediment.mp4 and an interactive index.html, so you can
+# link those instead, or point GitHub Pages at the branch to host the page.
 #
 name: Sediment
 
 on:
-  push:
-    branches: [main]
   schedule:
     - cron: '0 6 * * 1' # Mondays, 06:00 UTC
   workflow_dispatch:
+  # Rendering takes a few minutes because it installs a headless browser and
+  # ffmpeg, so this deliberately does not run on every push. Uncomment if you
+  # want the film to track the default branch commit by commit.
+  # push:
+  #   branches: [main]
 
 permissions:
   contents: write
@@ -29,8 +33,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # sediment needs the whole history
+          fetch-depth: 0 # sediment needs the whole history, not a shallow clone
       - uses: iLevyTate/sediment@main
         with:
-          gif: 'true'
+          gif: 'true' # implies video; the gif is derived from the mp4
+          gif-width: '760'
           publish-branch: sediment

@@ -68,8 +68,15 @@ Then in your README:
 ![History](https://raw.githubusercontent.com/OWNER/REPO/sediment/sediment.gif)
 ```
 
+This repository does exactly that to itself, on every change to the action. The image below is not
+committed anywhere; it is served from the `sediment` branch and replaced by the workflow, so it
+shows this repository as of the last run.
+
+![sediment's own history, rendered by its own action](https://raw.githubusercontent.com/iLevyTate/sediment/sediment/sediment.gif)
+
 `fetch-depth: 0` is the part people miss. Without it the checkout is shallow and you get a film of
-the last twenty commits. Templates for the branch, PR-artifact and Pages variants are in
+the last twenty commits. The branch also carries `sediment.mp4` and the interactive `index.html`, so
+you can link those instead. Templates for the branch, PR-artifact and Pages variants are in
 [`examples/`](examples).
 
 ## In the browser
