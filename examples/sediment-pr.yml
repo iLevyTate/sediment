@@ -22,7 +22,7 @@ jobs:
       - uses: iLevyTate/sediment@main
         id: sediment
         with:
-          gif: "true"
+          gif: 'true'
       - uses: actions/upload-artifact@v4
         with:
           name: sediment-${{ github.event.pull_request.number }}

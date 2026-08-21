@@ -1,5 +1,7 @@
 # sediment
 
+**[Try it in your browser →](https://ilevytate.github.io/sediment/)**
+
 Turn a git repository's history into a stratigraphic film.
 
 Time runs left to right. Each band is a region of the tree; its thickness is the code alive at that
@@ -33,7 +35,7 @@ push and once a week, then force-pushes the results to a `sediment` branch:
     fetch-depth: 0 # sediment needs the whole history
 - uses: iLevyTate/sediment@main
   with:
-    gif: "true"
+    gif: 'true'
     publish-branch: sediment
 ```
 
@@ -52,9 +54,16 @@ Pin to a tag rather than `@main` once you care about reproducibility.
 
 ### 3. In the browser, with nothing installed
 
-The hosted page takes a repository name and builds the film client-side against the GitHub API —
-useful for looking at somebody else's repository. **Download page** hands you the same
-self-contained HTML the CLI writes.
+**<https://ilevytate.github.io/sediment/>**
+
+Type a repository name and the film is built client-side against the GitHub API — useful for
+looking at somebody else's repository without cloning it. **Download page** hands you the same
+self-contained HTML the CLI writes, and every result is linkable: `…/sediment/#owner/repo` rebuilds
+it.
+
+It checks your remaining API budget before starting and fetches only what fits, so an anonymous
+visit degrades to fewer commits rather than failing halfway. Pasting a token (kept in your browser,
+never sent anywhere but GitHub) lifts the ceiling from 60 requests an hour to 5,000.
 
 ## Why the local version is the accurate one
 

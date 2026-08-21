@@ -56,7 +56,7 @@ export function hsl(h, s, l) {
   const to = (v) =>
     Math.round((v + m) * 255)
       .toString(16)
-      .padStart(2, "0");
+      .padStart(2, '0');
   return `#${to(r)}${to(g)}${to(b)}`;
 }
 

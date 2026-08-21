@@ -31,5 +31,10 @@
     "animation",
     "repository",
     "gource"
-  ]
+  ],
+  "homepage": "https://ilevytate.github.io/sediment/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iLevyTate/sediment.git"
+  }
 }

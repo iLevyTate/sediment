@@ -12,20 +12,20 @@
  * from — still lands in a lane by longest-prefix match.
  */
 
-const ROOT = "";
-const OTHER = " other"; // leading space cannot collide with a real prefix
+const ROOT = '';
+const OTHER = ' other'; // leading space cannot collide with a real prefix
 
 /** @param {string} path @param {number} depth */
 function prefixAt(path, depth) {
-  const parts = path.split("/");
+  const parts = path.split('/');
   if (parts.length <= 1) return ROOT;
-  return parts.slice(0, Math.min(depth, parts.length - 1)).join("/");
+  return parts.slice(0, Math.min(depth, parts.length - 1)).join('/');
 }
 
 /** @param {string} prefix */
 function labelFor(prefix) {
-  if (prefix === ROOT) return "(root)";
-  if (prefix === OTHER) return "other";
+  if (prefix === ROOT) return '(root)';
+  if (prefix === OTHER) return 'other';
   return prefix;
 }
 
@@ -75,9 +75,7 @@ export function deriveLanes(entries, options = {}) {
     .filter((pair) => pair[1] / total >= minShare)
     .sort((a, b) => b[1] - a[1]);
 
-  const kept = ranked
-    .slice(0, Math.max(1, maxLanes - 1))
-    .map((pair) => pair[0]);
+  const kept = ranked.slice(0, Math.max(1, maxLanes - 1)).map((pair) => pair[0]);
   const keptSet = new Set(kept);
   const hasOther = sized.size > kept.length;
 
@@ -108,16 +106,16 @@ export function deriveLanes(entries, options = {}) {
  */
 const BINARY_EXT = new Set(
   (
-    "png jpg jpeg gif webp bmp ico icns tiff avif pdf zip gz tgz bz2 xz 7z rar " +
-    "mp3 mp4 mov avi mkv webm wav ogg flac ttf otf woff woff2 eot exe dll so " +
-    "dylib node wasm bin dat psd ai sketch fig jar class pyc pyo o a lib " +
-    "sqlite db mo pack idx"
-  ).split(" "),
+    'png jpg jpeg gif webp bmp ico icns tiff avif pdf zip gz tgz bz2 xz 7z rar ' +
+    'mp3 mp4 mov avi mkv webm wav ogg flac ttf otf woff woff2 eot exe dll so ' +
+    'dylib node wasm bin dat psd ai sketch fig jar class pyc pyo o a lib ' +
+    'sqlite db mo pack idx'
+  ).split(' ')
 );
 
 /** @param {string} path */
 export function isBinaryPath(path) {
-  const dot = path.lastIndexOf(".");
+  const dot = path.lastIndexOf('.');
   if (dot === -1) return false;
   return BINARY_EXT.has(path.slice(dot + 1).toLowerCase());
 }

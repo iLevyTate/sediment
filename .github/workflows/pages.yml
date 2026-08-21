@@ -22,7 +22,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
+      # Enables Pages and switches its source to Actions on first run, so the
+      # deploy below does not 404 waiting on a manual settings change.
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - run: node bin/sediment.js web-assets --out _site
       - uses: actions/upload-pages-artifact@v3
         with:

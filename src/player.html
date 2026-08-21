@@ -26,12 +26,11 @@
     --grid: rgba(20, 23, 31, 0.1);
     --chrome: 1;
 
-    --shadow:
-      0 1px 2px rgba(20, 23, 31, 0.07), 0 12px 32px -10px rgba(20, 23, 31, 0.16);
+    --shadow: 0 1px 2px rgba(20, 23, 31, 0.07), 0 12px 32px -10px rgba(20, 23, 31, 0.16);
   }
 
   @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
+    :root:not([data-theme='light']) {
       --ground: #07080b;
       --surface: #0f1218;
       --surface-2: #171b23;
@@ -47,12 +46,11 @@
       --panel-top: rgba(255, 255, 255, 0.028);
       --grid: rgba(255, 255, 255, 0.09);
 
-      --shadow:
-        0 1px 2px rgba(0, 0, 0, 0.5), 0 14px 40px -10px rgba(0, 0, 0, 0.6);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 14px 40px -10px rgba(0, 0, 0, 0.6);
     }
   }
 
-  :root[data-theme="dark"] {
+  :root[data-theme='dark'] {
     --ground: #07080b;
     --surface: #0f1218;
     --surface-2: #171b23;
@@ -68,8 +66,7 @@
     --panel-top: rgba(255, 255, 255, 0.028);
     --grid: rgba(255, 255, 255, 0.09);
 
-    --shadow:
-      0 1px 2px rgba(0, 0, 0, 0.5), 0 14px 40px -10px rgba(0, 0, 0, 0.6);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 14px 40px -10px rgba(0, 0, 0, 0.6);
   }
 
   * {
@@ -80,7 +77,7 @@
     margin: 0;
     background: var(--ground);
     color: var(--ink);
-    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
     font-size: 14px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
@@ -118,7 +115,7 @@
   }
 
   .wordmark {
-    font-family: "IBM Plex Sans Condensed", ui-sans-serif, sans-serif;
+    font-family: 'IBM Plex Sans Condensed', ui-sans-serif, sans-serif;
     font-weight: 700;
     font-size: clamp(22px, 3.4vw, 34px);
     letter-spacing: -0.015em;
@@ -139,7 +136,7 @@
 
   .masthead-meta {
     margin-left: auto;
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -166,9 +163,7 @@
      gradient, a one-pixel inset sheen along the top edge, and a shadow with
      real falloff. */
   .panel {
-    background:
-      linear-gradient(180deg, var(--panel-top), rgba(0, 0, 0, 0) 46%),
-      var(--surface);
+    background: linear-gradient(180deg, var(--panel-top), rgba(0, 0, 0, 0) 46%), var(--surface);
     border: 1px solid var(--line);
     border-radius: 6px;
     box-shadow:
@@ -196,7 +191,7 @@
     gap: 8px;
     padding: 8px 12px 10px;
     border-top: 1px solid var(--line-soft);
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 10px;
     letter-spacing: 0.06em;
     color: var(--muted);
@@ -214,7 +209,7 @@
 
   button {
     font: inherit;
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 12px;
     letter-spacing: 0.04em;
     color: var(--ink);
@@ -239,7 +234,7 @@
     outline-offset: 2px;
   }
 
-  button[aria-pressed="true"] {
+  button[aria-pressed='true'] {
     background: var(--accent);
     border-color: var(--accent);
     color: var(--surface);
@@ -261,7 +256,7 @@
   }
 
   .rail-label {
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 10px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -308,7 +303,7 @@
   }
 
   .clock {
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 26px;
     font-weight: 500;
     letter-spacing: -0.01em;
@@ -329,7 +324,7 @@
   }
 
   .stat-value {
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 17px;
     font-weight: 500;
     font-variant-numeric: tabular-nums;
@@ -360,7 +355,7 @@
     flex-wrap: nowrap;
     gap: 8px;
     align-items: center;
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     color: var(--muted);
     height: 15px;
@@ -407,7 +402,7 @@
   }
 
   .ticker-paths {
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 10.5px;
     color: var(--muted);
     display: flex;
@@ -475,7 +470,7 @@
   }
 
   .legend-value {
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     font-variant-numeric: tabular-nums;
     text-align: right;
@@ -498,7 +493,7 @@
   }
 
   .note h2 {
-    font-family: "IBM Plex Sans Condensed", ui-sans-serif, sans-serif;
+    font-family: 'IBM Plex Sans Condensed', ui-sans-serif, sans-serif;
     font-size: 14px;
     font-weight: 700;
     margin: 0;
@@ -512,7 +507,7 @@
   }
 
   .note code {
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11.5px;
     background: var(--surface-2);
     border-radius: 2px;
@@ -522,7 +517,7 @@
   .colophon {
     border-top: 1px solid var(--line);
     padding-top: 12px;
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 10.5px;
     letter-spacing: 0.04em;
     color: var(--muted);
@@ -634,12 +629,7 @@
   <div class="stage">
     <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0">
       <div class="panel section-canvas">
-        <canvas
-          id="section"
-          width="1600"
-          height="820"
-          role="img"
-          aria-describedby="canvasDesc"
+        <canvas id="section" width="1600" height="820" role="img" aria-describedby="canvasDesc"
           >Animated stratigraphic section of the repository's history.</canvas
         >
         <p id="canvasDesc" class="sr-only"></p>
@@ -651,13 +641,9 @@
         <button id="restart" type="button">Restart</button>
         <span class="rail-label" id="progressLabel">0%</span>
         <div class="speeds" role="group" aria-label="Playback speed">
-          <span class="rail-label" style="align-self: center; margin-right: 4px"
-            >Speed</span
-          >
+          <span class="rail-label" style="align-self: center; margin-right: 4px">Speed</span>
           <button type="button" data-speed="0.5">0.5&times;</button>
-          <button type="button" data-speed="1" aria-pressed="true">
-            1&times;
-          </button>
+          <button type="button" data-speed="1" aria-pressed="true">1&times;</button>
           <button type="button" data-speed="2">2&times;</button>
           <button type="button" data-speed="4">4&times;</button>
         </div>
@@ -703,9 +689,7 @@
             <span class="who" id="tickerAuthor"></span>
             <span class="bot" id="tickerBot" hidden>agent</span>
           </div>
-          <div class="ticker-subject" id="tickerSubject">
-            Press play to begin deposition.
-          </div>
+          <div class="ticker-subject" id="tickerSubject">Press play to begin deposition.</div>
           <div class="ticker-paths" id="tickerPaths"></div>
         </div>
       </div>
@@ -724,17 +708,15 @@
     <div class="note">
       <h2>Scrub it</h2>
       <p>
-        Drag anywhere on the section to seek, or use <code>&larr;</code>
-        <code>&rarr;</code> to step a week at a time. <code>Space</code> toggles
-        playback.
+        Drag anywhere on the section to seek, or use <code>&larr;</code> <code>&rarr;</code> to step
+        a week at a time. <code>Space</code> toggles playback.
       </p>
     </div>
     <div class="note">
       <h2>Make your own</h2>
       <p>
-        Run <code>npx sediment</code> in any repository to build one of these
-        from its history, or <code>npx sediment --video</code> to record it to
-        an mp4.
+        Run <code>npx sediment</code> in any repository to build one of these from its history, or
+        <code>npx sediment --video</code> to record it to an mp4.
       </p>
     </div>
   </section>
@@ -745,30 +727,30 @@
 <script>
   // Baked in by `sediment build`, or handed over by the web app before load.
   const H = window.SEDIMENT_PAYLOAD || /*__PAYLOAD__*/ null;
-  const UNITS = H.units === "bytes" ? "bytes" : "lines";
+  const UNITS = H.units === 'bytes' ? 'bytes' : 'lines';
 
   const $ = (id) => document.getElementById(id);
-  const nf = new Intl.NumberFormat("en-US");
+  const nf = new Intl.NumberFormat('en-US');
   const MONTHS = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
   const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
   /** @param {number} ts epoch seconds @returns {string} */
   function fmtDate(ts) {
     const d = new Date(ts * 1000);
-    const day = d.getUTCDate().toString().padStart(2, "0");
+    const day = d.getUTCDate().toString().padStart(2, '0');
     return `${day} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
   }
 
@@ -789,7 +771,7 @@
   }
 
   const CAPTURE = /\bfilm\b/.test(location.hash);
-  if (CAPTURE) document.documentElement.classList.add("film");
+  if (CAPTURE) document.documentElement.classList.add('film');
 
   const T0 = H.range[0];
   const T1 = H.range[1];
@@ -828,44 +810,41 @@
   function applyPalette(dark) {
     const root = document.documentElement;
     const set = (dark ? H.colors.dark : H.colors.light) || [];
-    H.lanes.forEach((key, i) =>
-      root.style.setProperty(`--lane-${key}`, set[i] || "#888"),
-    );
+    H.lanes.forEach((key, i) => root.style.setProperty(`--lane-${key}`, set[i] || '#888'));
   }
 
   function readTheme() {
     let cs = getComputedStyle(document.documentElement);
-    const probe = hexToRgb(cs.getPropertyValue("--surface").trim());
+    const probe = hexToRgb(cs.getPropertyValue('--surface').trim());
     applyPalette((probe.r * 299 + probe.g * 587 + probe.b * 114) / 1000 < 128);
     cs = getComputedStyle(document.documentElement);
     const get = (name) => cs.getPropertyValue(name).trim();
-    theme.ink = get("--ink");
-    theme.ink2 = get("--ink-2");
-    theme.muted = get("--muted");
-    theme.line = get("--line");
-    theme.surface = get("--surface");
-    theme.accent = get("--accent");
-    theme.playhead = get("--playhead");
-    theme.grid = get("--grid");
-    theme.ground = get("--ground");
+    theme.ink = get('--ink');
+    theme.ink2 = get('--ink-2');
+    theme.muted = get('--muted');
+    theme.line = get('--line');
+    theme.surface = get('--surface');
+    theme.accent = get('--accent');
+    theme.playhead = get('--playhead');
+    theme.grid = get('--grid');
+    theme.ground = get('--ground');
     theme.lanes = H.lanes.map((name) => get(`--lane-${name}`));
-    const ground = hexToRgb(get("--surface"));
-    theme.dark =
-      (ground.r * 299 + ground.g * 587 + ground.b * 114) / 1000 < 128;
+    const ground = hexToRgb(get('--surface'));
+    theme.dark = (ground.r * 299 + ground.g * 587 + ground.b * 114) / 1000 < 128;
     theme.laneRgb = theme.lanes.map(hexToRgb);
   }
 
   /** @param {string} hex @returns {{r: number, g: number, b: number}} */
   function hexToRgb(hex) {
-    const h = hex.replace("#", "").trim();
+    const h = hex.replace('#', '').trim();
     const full =
       h.length === 3
         ? h
-            .split("")
+            .split('')
             .map((c) => c + c)
-            .join("")
+            .join('')
         : h;
-    const n = parseInt(full.slice(0, 6) || "000000", 16);
+    const n = parseInt(full.slice(0, 6) || '000000', 16);
     return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
   }
 
@@ -887,10 +866,10 @@
   const darken = (c, k) => mix(c, 0, k);
 
   // ---- canvas geometry ------------------------------------------------------
-  const canvas = $("section");
-  const ctx = canvas.getContext("2d");
-  const strata = document.createElement("canvas");
-  const sctx = strata.getContext("2d");
+  const canvas = $('section');
+  const ctx = canvas.getContext('2d');
+  const strata = document.createElement('canvas');
+  const sctx = strata.getContext('2d');
 
   const PAD = { l: 54, r: 10, t: 54, b: 8 };
   const LABEL_ROWS = 3;
@@ -942,7 +921,7 @@
       const labelled = row !== -1;
       if (!labelled) row = LABEL_ROWS - 1;
       else rowEnds[row] = x + width;
-      releaseLayout.push({ ts, x, row, label: labelled ? tag : "" });
+      releaseLayout.push({ ts, x, row, label: labelled ? tag : '' });
     }
   }
 
@@ -1013,10 +992,7 @@
 
         if (yBot - yTop > 1.5) {
           const grad = sctx.createLinearGradient(0, yTop, 0, yBot);
-          grad.addColorStop(
-            0,
-            rgba(lighten(base, theme.dark ? 0.12 : 0.07), 1),
-          );
+          grad.addColorStop(0, rgba(lighten(base, theme.dark ? 0.12 : 0.07), 1));
           grad.addColorStop(1, rgba(darken(base, theme.dark ? 0.3 : 0.16), 1));
           sctx.fillStyle = grad;
         } else {
@@ -1032,10 +1008,7 @@
         sctx.fill();
 
         // bedding plane
-        sctx.strokeStyle = rgba(
-          lighten(base, theme.dark ? 0.4 : 0.3),
-          theme.dark ? 0.5 : 0.4,
-        );
+        sctx.strokeStyle = rgba(lighten(base, theme.dark ? 0.4 : 0.3), theme.dark ? 0.5 : 0.4);
         sctx.lineWidth = 1;
         sctx.beginPath();
         sctx.moveTo(xa, yOf(ca[i]));
@@ -1117,11 +1090,11 @@
   }
 
   function drawGrains() {
-    const glow = theme.dark ? "lighter" : "source-over";
+    const glow = theme.dark ? 'lighter' : 'source-over';
 
     // motion streaks first, so the heads sit on top of their own trails
     ctx.save();
-    ctx.lineCap = "round";
+    ctx.lineCap = 'round';
     for (const g of grains) {
       if (g.settle || g.dying) continue;
       const drop = g.y - g.py;
@@ -1159,7 +1132,7 @@
         halo.addColorStop(1, rgba(c, 0));
         ctx.fillStyle = halo;
         ctx.fillRect(g.x - g.r * 2.6, g.y - g.r * 2.6, g.r * 5.2, g.r * 5.2);
-        ctx.globalCompositeOperation = "source-over";
+        ctx.globalCompositeOperation = 'source-over';
       }
 
       ctx.fillStyle = rgba(g.dying ? lighten(c, 0.28) : c, alpha);
@@ -1173,10 +1146,7 @@
     ctx.save();
     for (const ring of rings) {
       const p = ring.age / ring.life;
-      ctx.strokeStyle = rgba(
-        lighten(theme.laneRgb[ring.lane], 0.45),
-        (1 - p) * 0.26,
-      );
+      ctx.strokeStyle = rgba(lighten(theme.laneRgb[ring.lane], 0.45), (1 - p) * 0.26);
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.arc(ring.x, ring.y, ring.r0 + p * 13, 0, Math.PI * 2);
@@ -1193,13 +1163,8 @@
 
     // the not-yet-deposited future reads as unlit ground
     ctx.save();
-    ctx.fillStyle = theme.dark ? "rgba(0,0,0,0.18)" : "rgba(20,23,31,0.03)";
-    ctx.fillRect(
-      x,
-      PAD.t - 20,
-      Math.max(0, W - PAD.r - x),
-      Hgt - PAD.b - PAD.t + 20,
-    );
+    ctx.fillStyle = theme.dark ? 'rgba(0,0,0,0.18)' : 'rgba(20,23,31,0.03)';
+    ctx.fillRect(x, PAD.t - 20, Math.max(0, W - PAD.r - x), Hgt - PAD.b - PAD.t + 20);
     ctx.restore();
 
     // month gridlines
@@ -1219,7 +1184,7 @@
     // release marks, fading in as the playhead reaches them
     ctx.save();
     ctx.font = "500 10px 'IBM Plex Mono', ui-monospace, monospace";
-    ctx.textBaseline = "alphabetic";
+    ctx.textBaseline = 'alphabetic';
     for (const rel of releaseLayout) {
       if (rel.ts > ts) continue;
       const a = clamp01((ts - rel.ts) / RELEASE_FADE);
@@ -1243,10 +1208,7 @@
     ctx.save();
     const wash = ctx.createLinearGradient(x - 90, 0, x, 0);
     wash.addColorStop(0, rgba(hexToRgb(theme.playhead), 0));
-    wash.addColorStop(
-      1,
-      rgba(hexToRgb(theme.playhead), theme.dark ? 0.16 : 0.1),
-    );
+    wash.addColorStop(1, rgba(hexToRgb(theme.playhead), theme.dark ? 0.16 : 0.1));
     ctx.fillStyle = wash;
     ctx.fillRect(x - 90, PAD.t - 20, 90, Hgt - PAD.b - PAD.t + 20);
 
@@ -1290,7 +1252,7 @@
 
   /** @param {number} v @param {number} step */
   function axisLabel(v, step) {
-    if (v === 0) return "0";
+    if (v === 0) return '0';
     if (v >= 1e9) return `${+(v / 1e9).toFixed(step < 1e9 ? 1 : 0)}G`;
     if (v >= 1e6) return `${+(v / 1e6).toFixed(step < 1e6 ? 1 : 0)}M`;
     if (v >= 1e3) return `${+(v / 1e3).toFixed(step < 1e3 ? 1 : 0)}k`;
@@ -1302,8 +1264,8 @@
   function drawScale() {
     ctx.save();
     ctx.font = "400 10px 'IBM Plex Mono', ui-monospace, monospace";
-    ctx.textAlign = "right";
-    ctx.textBaseline = "middle";
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
     for (let v = 0; v <= H.maxLoc; v += GRID_STEP) {
       const y = Math.round(yOf(v)) + 0.5;
       ctx.strokeStyle = theme.grid;
@@ -1332,10 +1294,10 @@
       Math.min(W, Hgt) * 0.35,
       W / 2,
       Hgt / 2,
-      Math.max(W, Hgt) * 0.78,
+      Math.max(W, Hgt) * 0.78
     );
-    g.addColorStop(0, "rgba(0,0,0,0)");
-    g.addColorStop(1, theme.dark ? "rgba(0,0,0,0.28)" : "rgba(20,23,31,0.08)");
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(1, theme.dark ? 'rgba(0,0,0,0.28)' : 'rgba(20,23,31,0.08)');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, Hgt);
     ctx.restore();
@@ -1353,21 +1315,21 @@
    * @param {number} cx @param {number} y @param {number} size @param {number} a
    */
   function drawWordmark(cx, y, size, a) {
-    ctx.textAlign = "center";
+    ctx.textAlign = 'center';
     ctx.letterSpacing = `${(size * 0.012).toFixed(2)}px`;
     ctx.font = `700 ${size}px 'IBM Plex Sans Condensed', ui-sans-serif, sans-serif`;
     const [strato, strata] = H.titleParts;
     const wA = ctx.measureText(strato).width;
     const wB = ctx.measureText(strata).width;
     const left = cx - (wA + wB) / 2;
-    ctx.textAlign = "left";
+    ctx.textAlign = 'left';
     ctx.globalAlpha = a;
     ctx.fillStyle = theme.ink;
     ctx.fillText(strato, left, y);
     ctx.fillStyle = theme.accent;
     ctx.fillText(strata, left + wA, y);
-    ctx.letterSpacing = "0px";
-    ctx.textAlign = "center";
+    ctx.letterSpacing = '0px';
+    ctx.textAlign = 'center';
   }
 
   /** @param {number} cx @param {number} y @param {number} half @param {number} a */
@@ -1406,12 +1368,7 @@
     const rise = (1 - easeOut(seg(p, 0.08, 0.5))) * 16;
     drawWordmark(cx, cy - 20 + rise, Math.min(88, W * 0.062), markA);
 
-    drawRule(
-      cx,
-      cy + 4 + rise,
-      easeOut(seg(p, 0.26, 0.66)) * Math.min(260, W * 0.2),
-      cover,
-    );
+    drawRule(cx, cy + 4 + rise, easeOut(seg(p, 0.26, 0.66)) * Math.min(260, W * 0.2), cover);
 
     ctx.globalAlpha = seg(p, 0.4, 0.72) * cover;
     ctx.fillStyle = theme.ink2;
@@ -1419,7 +1376,7 @@
     ctx.fillText(
       `${H.title} · a stratigraphic record of ${nf.format(H.meta.commits)} commits`,
       cx,
-      cy + 32 + rise,
+      cy + 32 + rise
     );
 
     ctx.globalAlpha = seg(p, 0.52, 0.84) * cover;
@@ -1440,22 +1397,20 @@
     const rise = (1 - easeOut(a)) * 14;
 
     ctx.save();
-    ctx.fillStyle = theme.dark
-      ? `rgba(4,5,8,${a * 0.76})`
-      : `rgba(246,247,250,${a * 0.84})`;
+    ctx.fillStyle = theme.dark ? `rgba(4,5,8,${a * 0.76})` : `rgba(246,247,250,${a * 0.84})`;
     ctx.fillRect(0, 0, W, Hgt);
 
     drawWordmark(cx, cy - 38 + rise, Math.min(64, W * 0.045), a);
     drawRule(cx, cy - 12 + rise, easeOut(a) * Math.min(240, W * 0.185), a);
 
-    ctx.textAlign = "center";
+    ctx.textAlign = 'center';
     ctx.globalAlpha = a;
     ctx.fillStyle = theme.ink;
     ctx.font = "500 18px 'IBM Plex Mono', ui-monospace, monospace";
     ctx.fillText(
       `${nf.format(H.meta.commits)} commits   ${H.meta.spanDays} days   ${nf.format(H.meta.finalLoc)} ${UNITS}`,
       cx,
-      cy + 20 + rise,
+      cy + 20 + rise
     );
 
     ctx.fillStyle = theme.ink2;
@@ -1463,13 +1418,13 @@
     ctx.fillText(
       `${nf.format(H.meta.filesAlive)} files   ${H.meta.contributors} contributors   ${H.releases.length} releases`,
       cx,
-      cy + 46 + rise,
+      cy + 46 + rise
     );
 
     ctx.globalAlpha = a * seg(a, 0.55, 1);
     ctx.fillStyle = theme.muted;
     ctx.font = "400 11px 'IBM Plex Mono', ui-monospace, monospace";
-    ctx.fillText(H.meta.note || "built with sediment", cx, cy + 78 + rise);
+    ctx.fillText(H.meta.note || 'built with sediment', cx, cy + 78 + rise);
     ctx.restore();
   }
 
@@ -1484,7 +1439,7 @@
   let totals = { commits: 0, add: 0, del: 0, loc: 0, files: 0 };
   // Counters chase their targets instead of snapping, so the readout rolls.
   let shown = { commits: 0, add: 0, del: 0, loc: 0, files: 0, releases: 0 };
-  let lastPaths = ["", "", "", ""];
+  let lastPaths = ['', '', '', ''];
   const laneRows = [];
   const pathSlots = [];
   let laneShown = null;
@@ -1499,7 +1454,7 @@
   function skipIntro() {
     if (introT >= INTRO) return;
     introT = INTRO;
-    document.documentElement.style.setProperty("--chrome", "1");
+    document.documentElement.style.setProperty('--chrome', '1');
   }
 
   function resetPlayback() {
@@ -1512,22 +1467,22 @@
     totals = { commits: 0, add: 0, del: 0, loc: 0, files: 0 };
     grains = [];
     rings = [];
-    lastPaths = ["", "", "", ""];
+    lastPaths = ['', '', '', ''];
     snapShown();
     clearStrata();
-    $("tickerSha").textContent = "—";
-    $("tickerAuthor").textContent = "";
-    $("tickerBot").hidden = true;
-    $("tickerSubject").textContent = "Press play to begin deposition.";
+    $('tickerSha').textContent = '—';
+    $('tickerAuthor').textContent = '';
+    $('tickerBot').hidden = true;
+    $('tickerSubject').textContent = 'Press play to begin deposition.';
   }
 
   /** @param {any[]} c a packed commit record */
   function paintTicker(c) {
-    $("tickerSha").textContent = c[7];
+    $('tickerSha').textContent = c[7];
     const author = H.authors[c[1]];
-    $("tickerAuthor").textContent = author[0];
-    $("tickerBot").hidden = !author[1];
-    $("tickerSubject").textContent = c[8];
+    $('tickerAuthor').textContent = author[0];
+    $('tickerBot').hidden = !author[1];
+    $('tickerSubject').textContent = c[8];
   }
 
   /**
@@ -1539,10 +1494,7 @@
     const x = xOf(ts);
     let spawned = 0;
     let fresh = null;
-    while (
-      commitCursor < H.commits.length &&
-      H.commits[commitCursor][0] <= ts
-    ) {
+    while (commitCursor < H.commits.length && H.commits[commitCursor][0] <= ts) {
       const c = H.commits[commitCursor];
       totals.commits += 1;
       totals.add += c[2];
@@ -1555,10 +1507,7 @@
       }
       commitCursor += 1;
     }
-    while (
-      eventCursor < H.events.length &&
-      H.events[eventCursor][0] < commitCursor
-    ) {
+    while (eventCursor < H.events.length && H.events[eventCursor][0] < commitCursor) {
       const e = H.events[eventCursor];
       if (visual && spawned < GRAINS_PER_COMMIT * 3) {
         spawnGrain(e[2], e[3], e[1] === 2, x);
@@ -1567,18 +1516,8 @@
       }
       eventCursor += 1;
     }
-    if (fresh)
-      lastPaths = [
-        fresh[0] || "",
-        fresh[1] || "",
-        fresh[2] || "",
-        fresh[3] || "",
-      ];
-    while (
-      releaseCount < H.releases.length &&
-      H.releases[releaseCount][0] <= ts
-    )
-      releaseCount += 1;
+    if (fresh) lastPaths = [fresh[0] || '', fresh[1] || '', fresh[2] || '', fresh[3] || ''];
+    while (releaseCount < H.releases.length && H.releases[releaseCount][0] <= ts) releaseCount += 1;
   }
 
   function seek(ts) {
@@ -1603,7 +1542,7 @@
         seen.push(H.paths[H.events[e][4]]);
       }
       seen.reverse();
-      lastPaths = [seen[0] || "", seen[1] || "", seen[2] || "", seen[3] || ""];
+      lastPaths = [seen[0] || '', seen[1] || '', seen[2] || '', seen[3] || ''];
     }
     snapShown();
     updateReadouts();
@@ -1612,44 +1551,44 @@
 
   // ---- readouts -------------------------------------------------------------
   function buildLegend() {
-    const legend = $("legend");
+    const legend = $('legend');
     legend.replaceChildren();
-    const heading = document.createElement("div");
-    heading.className = "rail-label";
+    const heading = document.createElement('div');
+    heading.className = 'rail-label';
     heading.textContent = `Strata — ${UNITS} alive`;
     legend.appendChild(heading);
     for (let i = H.lanes.length - 1; i >= 0; i -= 1) {
-      const row = document.createElement("div");
-      row.className = "legend-row";
-      const sw = document.createElement("span");
-      sw.className = "swatch";
+      const row = document.createElement('div');
+      row.className = 'legend-row';
+      const sw = document.createElement('span');
+      sw.className = 'swatch';
       sw.style.background = `var(--lane-${H.lanes[i]})`;
-      const mid = document.createElement("div");
-      const name = document.createElement("div");
-      name.className = "legend-name";
+      const mid = document.createElement('div');
+      const name = document.createElement('div');
+      name.className = 'legend-name';
       name.textContent = H.laneLabels[i];
-      const bar = document.createElement("div");
-      bar.className = "legend-bar";
-      const fill = document.createElement("i");
+      const bar = document.createElement('div');
+      bar.className = 'legend-bar';
+      const fill = document.createElement('i');
       fill.style.background = `var(--lane-${H.lanes[i]})`;
-      fill.style.width = "0%";
+      fill.style.width = '0%';
       bar.appendChild(fill);
       mid.append(name, bar);
-      const val = document.createElement("div");
-      val.className = "legend-value";
-      val.textContent = "0";
+      const val = document.createElement('div');
+      val.className = 'legend-value';
+      val.textContent = '0';
       row.append(sw, mid, val);
       legend.appendChild(row);
-      laneRows[i] = { fill, val, lastWidth: -1, lastText: "" };
+      laneRows[i] = { fill, val, lastWidth: -1, lastText: '' };
     }
   }
 
   /** Four permanent slots — never rebuilt, only retitled. */
   function buildPathSlots() {
-    const host = $("tickerPaths");
+    const host = $('tickerPaths');
     host.replaceChildren();
     for (let i = 0; i < 4; i += 1) {
-      const span = document.createElement("span");
+      const span = document.createElement('span');
       host.appendChild(span);
       pathSlots.push(span);
     }
@@ -1674,16 +1613,16 @@
   }
 
   function updateReadouts() {
-    $("clock").textContent = fmtDate(t);
-    $("statCommits").textContent = nf.format(Math.round(shown.commits));
-    $("statLoc").textContent = compact(shown.loc);
-    $("statFiles").textContent = nf.format(Math.round(shown.files));
-    $("statReleases").textContent = nf.format(Math.round(shown.releases));
-    $("statAdd").textContent = `+${compact(shown.add)}`;
-    $("statDel").textContent = `−${compact(shown.del)}`;
+    $('clock').textContent = fmtDate(t);
+    $('statCommits').textContent = nf.format(Math.round(shown.commits));
+    $('statLoc').textContent = compact(shown.loc);
+    $('statFiles').textContent = nf.format(Math.round(shown.files));
+    $('statReleases').textContent = nf.format(Math.round(shown.releases));
+    $('statAdd').textContent = `+${compact(shown.add)}`;
+    $('statDel').textContent = `−${compact(shown.del)}`;
     const pct = ((t - T0) / SPAN) * 100;
-    $("progressLabel").textContent = `${Math.round(pct)}%`;
-    $("progressFill").style.width = `${pct.toFixed(2)}%`;
+    $('progressLabel').textContent = `${Math.round(pct)}%`;
+    $('progressFill').style.width = `${pct.toFixed(2)}%`;
 
     for (let i = 0; i < 4; i += 1) {
       if (pathSlots[i] && pathSlots[i].textContent !== lastPaths[i]) {
@@ -1700,9 +1639,7 @@
       // over a tenth of the maximum at an identical 10% stub.)
       const ratio = laneShown[i] / H.maxLaneLoc;
       const pct =
-        laneShown[i] < 0.5
-          ? 0
-          : Math.min(100, Math.max(1.5, Math.round(ratio * 1000) / 10));
+        laneShown[i] < 0.5 ? 0 : Math.min(100, Math.max(1.5, Math.round(ratio * 1000) / 10));
       if (pct !== row.lastWidth) {
         row.fill.style.width = `${pct}%`;
         row.lastWidth = pct;
@@ -1714,7 +1651,7 @@
       }
     }
 
-    $("canvasDesc").textContent =
+    $('canvasDesc').textContent =
       `${fmtDate(t)}: ${nf.format(totals.commits)} commits, ` +
       `${nf.format(totals.loc)} lines across ${nf.format(totals.files)} files.`;
   }
@@ -1736,8 +1673,8 @@
     if (introT < INTRO) {
       introT = Math.min(INTRO, introT + dt);
       document.documentElement.style.setProperty(
-        "--chrome",
-        easeOut(seg(introT / INTRO, 0.62, 1)).toFixed(3),
+        '--chrome',
+        easeOut(seg(introT / INTRO, 0.62, 1)).toFixed(3)
       );
       render();
       return;
@@ -1772,7 +1709,7 @@
 
   function setPlaying(next) {
     playing = next;
-    $("play").textContent = next ? "Pause" : u >= 1 ? "Replay" : "Play";
+    $('play').textContent = next ? 'Pause' : u >= 1 ? 'Replay' : 'Play';
   }
 
   // ---- wiring ---------------------------------------------------------------
@@ -1793,61 +1730,59 @@
 
     // Repo name in the masthead, two-tone like the title card.
     document.title = H.title;
-    const mark = $("wordmark");
+    const mark = $('wordmark');
     mark.replaceChildren(document.createTextNode(H.titleParts[0]));
-    const em = document.createElement("em");
+    const em = document.createElement('em');
     em.textContent = H.titleParts[1];
     mark.appendChild(em);
 
-    $("standfirst").textContent =
+    $('standfirst').textContent =
       `Every commit this repository has ever taken, deposited as sediment. Time runs left to ` +
       `right; each band is a region of the tree, its thickness the ${UNITS} alive at that moment.`;
 
-    $("unitsLabel").textContent = UNITS === "bytes" ? "Bytes" : "Lines";
+    $('unitsLabel').textContent = UNITS === 'bytes' ? 'Bytes' : 'Lines';
 
-    $("grainNote").textContent = H.events.length
+    $('grainNote').textContent = H.events.length
       ? `Grains fall on every file event — one per file touched by the commit under the playhead, ` +
         `sized by the file's ${UNITS} and coloured by where it lives. Deletions rise and dissipate ` +
         `instead of settling.`
       : `This build has commit-level history only, so the section grows without per-file grains. ` +
         `Run sediment locally for the full file-by-file record.`;
 
-    $("mastheadMeta").replaceChildren(
+    $('mastheadMeta').replaceChildren(
       document.createTextNode(
-        `${nf.format(H.meta.commits)} commits · ${nf.format(H.meta.fileEvents)} file events`,
+        `${nf.format(H.meta.commits)} commits · ${nf.format(H.meta.fileEvents)} file events`
       ),
-      document.createElement("br"),
-      document.createTextNode(
-        `${fmtDate(T0)} — ${fmtDate(T1)} · ${H.meta.spanDays} days`,
-      ),
+      document.createElement('br'),
+      document.createTextNode(`${fmtDate(T0)} — ${fmtDate(T1)} · ${H.meta.spanDays} days`)
     );
 
-    const axis = $("axis");
+    const axis = $('axis');
     axis.replaceChildren();
     for (const tick of H.ticks) {
-      const span = document.createElement("span");
+      const span = document.createElement('span');
       span.textContent = tick[1];
       axis.appendChild(span);
     }
 
-    $("colophon").textContent =
+    $('colophon').textContent =
       `${H.title} — ${nf.format(H.meta.commits)} commits ` +
       `(${nf.format(H.meta.merges)} merges) by ${H.meta.contributors} contributors, ` +
       `${nf.format(H.meta.filesAlive)} files and ${nf.format(H.meta.finalLoc)} ${UNITS} at HEAD. ` +
-      (H.meta.note || "Built with sediment.");
+      (H.meta.note || 'Built with sediment.');
 
     resetPlayback();
     updateReadouts();
     render();
 
-    document.documentElement.style.setProperty("--chrome", "0");
+    document.documentElement.style.setProperty('--chrome', '0');
 
     if (CAPTURE) {
       setPlaying(false);
       return; // the recorder drives every frame through window.__strata
     }
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     if (reduced.matches) {
       skipIntro();
       seek(T1);
@@ -1870,7 +1805,7 @@
     reset() {
       seed = 0x9e3779b9;
       introT = 0;
-      document.documentElement.style.setProperty("--chrome", "0");
+      document.documentElement.style.setProperty('--chrome', '0');
       resetPlayback();
       updateReadouts();
       render();
@@ -1890,7 +1825,7 @@
     },
   };
 
-  $("play").addEventListener("click", () => {
+  $('play').addEventListener('click', () => {
     skipIntro();
     if (u >= 1) {
       resetPlayback();
@@ -1899,7 +1834,7 @@
     setPlaying(!playing);
   });
 
-  $("restart").addEventListener("click", () => {
+  $('restart').addEventListener('click', () => {
     skipIntro();
     resetPlayback();
     updateReadouts();
@@ -1907,11 +1842,11 @@
     setPlaying(true);
   });
 
-  for (const btn of document.querySelectorAll("[data-speed]")) {
-    btn.addEventListener("click", () => {
+  for (const btn of document.querySelectorAll('[data-speed]')) {
+    btn.addEventListener('click', () => {
       speed = Number(btn.dataset.speed);
-      for (const other of document.querySelectorAll("[data-speed]")) {
-        other.setAttribute("aria-pressed", String(other === btn));
+      for (const other of document.querySelectorAll('[data-speed]')) {
+        other.setAttribute('aria-pressed', String(other === btn));
       }
     });
   }
@@ -1921,45 +1856,43 @@
     const rect = canvas.getBoundingClientRect();
     seek(tsOf(((ev.clientX - rect.left) / rect.width) * W));
   };
-  canvas.addEventListener("pointerdown", (ev) => {
+  canvas.addEventListener('pointerdown', (ev) => {
     dragging = true;
     setPlaying(false);
     canvas.setPointerCapture(ev.pointerId);
     seekFromEvent(ev);
   });
-  canvas.addEventListener("pointermove", (ev) => {
+  canvas.addEventListener('pointermove', (ev) => {
     if (dragging) seekFromEvent(ev);
   });
-  canvas.addEventListener("pointerup", () => {
+  canvas.addEventListener('pointerup', () => {
     dragging = false;
   });
 
-  window.addEventListener("keydown", (ev) => {
+  window.addEventListener('keydown', (ev) => {
     if (ev.target !== document.body) return;
-    if (ev.code === "Space") {
+    if (ev.code === 'Space') {
       ev.preventDefault();
       setPlaying(!playing);
-    } else if (ev.code === "ArrowRight") {
+    } else if (ev.code === 'ArrowRight') {
       ev.preventDefault();
       seek(t + 604800);
-    } else if (ev.code === "ArrowLeft") {
+    } else if (ev.code === 'ArrowLeft') {
       ev.preventDefault();
       seek(t - 604800);
     }
   });
 
   let resizeTimer = 0;
-  window.addEventListener("resize", () => {
+  window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(rebuild, 150);
   });
 
-  window
-    .matchMedia("(prefers-color-scheme: dark)")
-    .addEventListener("change", rebuild);
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', rebuild);
   new MutationObserver(rebuild).observe(document.documentElement, {
     attributes: true,
-    attributeFilter: ["data-theme"],
+    attributeFilter: ['data-theme'],
   });
 
   init();

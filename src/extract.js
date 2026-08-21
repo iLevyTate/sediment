@@ -11,13 +11,13 @@
  * virtual filesystem against ground truth to catch it.
  */
 
-import { execFileSync } from "child_process";
-import path from "path";
-import { deriveLanes } from "./lanes.js";
+import { execFileSync } from 'child_process';
+import path from 'path';
+import { deriveLanes } from './lanes.js';
 
-const RS = "\x1e";
-const US = "\x1f";
-const NULL_SHA = "0000000000000000000000000000000000000000";
+const RS = '\x1e';
+const US = '\x1f';
+const NULL_SHA = '0000000000000000000000000000000000000000';
 const BLOB_BATCH = 400;
 const BINARY_SNIFF = 8000;
 
@@ -25,9 +25,9 @@ export const STATUS_CODES = { A: 0, M: 1, D: 2, R: 3, C: 4, T: 5 };
 
 /** @param {string[]} args @param {string} cwd */
 function git(args, cwd) {
-  return execFileSync("git", args, {
+  return execFileSync('git', args, {
     cwd,
-    encoding: "utf8",
+    encoding: 'utf8',
     maxBuffer: 1024 * 1024 * 512,
   });
 }
@@ -45,74 +45,63 @@ function unquotePath(raw) {
     f: 12,
     a: 7,
     v: 11,
-    "\\": 92,
+    '\\': 92,
     '"': 34,
   };
   for (let i = 0; i < body.length; i += 1) {
-    if (body[i] !== "\\") {
+    if (body[i] !== '\\') {
       bytes.push(body.charCodeAt(i));
       continue;
     }
     const next = body[(i += 1)];
-    if (Object.prototype.hasOwnProperty.call(simple, next))
-      bytes.push(simple[next]);
+    if (Object.prototype.hasOwnProperty.call(simple, next)) bytes.push(simple[next]);
     else {
       bytes.push(parseInt(body.slice(i, i + 3), 8));
       i += 2;
     }
   }
-  return Buffer.from(bytes).toString("utf8");
+  return Buffer.from(bytes).toString('utf8');
 }
 
 export const isoDay = (ts) => new Date(ts * 1000).toISOString().slice(0, 10);
 
 function readCommits(repoRoot) {
-  const format = [
-    `${RS}%H`,
-    "%P",
-    "%an",
-    "%ae",
-    "%at",
-    "%cn",
-    "%ce",
-    "%ct",
-    "%s",
-  ].join(US);
+  const format = [`${RS}%H`, '%P', '%an', '%ae', '%at', '%cn', '%ce', '%ct', '%s'].join(US);
   const stdout = git(
     [
-      "log",
-      "--reverse",
-      "--raw",
-      "--numstat",
-      "--no-abbrev",
-      "-M",
-      "--no-color",
+      'log',
+      '--reverse',
+      '--raw',
+      '--numstat',
+      '--no-abbrev',
+      '-M',
+      '--no-color',
       `--format=${format}`,
     ],
-    repoRoot,
+    repoRoot
   );
 
   const commits = [];
   for (const chunk of stdout.split(RS)) {
     if (!chunk.trim()) continue;
-    const nl = chunk.indexOf("\n");
+    const nl = chunk.indexOf('\n');
     const header = nl === -1 ? chunk : chunk.slice(0, nl);
-    const body = nl === -1 ? "" : chunk.slice(nl + 1);
+    const body = nl === -1 ? '' : chunk.slice(nl + 1);
     const [sha, parents, an, ae, at, cn, ce, ct, subject] = header.split(US);
 
     const rawEvents = [];
     const stats = [];
-    for (const line of body.split("\n")) {
+    for (const line of body.split('\n')) {
       if (!line) continue;
-      if (line.startsWith(":")) {
-        const tabAt = line.indexOf("\t");
-        const fields = line.slice(1, tabAt).split(" ");
-        const status = (fields[4] || "?")[0];
+      if (line.startsWith(':')) {
+        const tabAt = line.indexOf('\t');
+        const fields = line.slice(1, tabAt).split(' ');
+        const status = (fields[4] || '?')[0];
         const paths = line
           .slice(tabAt + 1)
-          .split("\t")
+          .split('\t')
           .map(unquotePath);
-        const isMove = status === "R" || status === "C";
+        const isMove = status === 'R' || status === 'C';
         rawEvents.push({
           status,
           path: isMove ? paths[1] : paths[0],
@@ -120,10 +109,10 @@ function readCommits(repoRoot) {
           dstSha: fields[3],
         });
       } else {
-        const [add, del] = line.split("\t");
+        const [add, del] = line.split('\t');
         stats.push({
-          add: add === "-" ? -1 : Number(add),
-          del: del === "-" ? -1 : Number(del),
+          add: add === '-' ? -1 : Number(add),
+          del: del === '-' ? -1 : Number(del),
         });
       }
     }
@@ -131,7 +120,7 @@ function readCommits(repoRoot) {
     commits.push({
       sha,
       short: sha.slice(0, 8),
-      parents: parents ? parents.split(" ") : [],
+      parents: parents ? parents.split(' ') : [],
       author: { name: an, email: ae },
       authorTs: Number(at),
       commitTs: Number(ct),
@@ -144,47 +133,47 @@ function readCommits(repoRoot) {
 }
 
 function readTags(repoRoot) {
-  let out = "";
+  let out = '';
   try {
     out = git(
       [
-        "for-each-ref",
-        "--sort=creatordate",
+        'for-each-ref',
+        '--sort=creatordate',
         `--format=%(refname:short)${US}%(objectname)${US}%(creatordate:unix)${US}%(contents:subject)`,
-        "refs/tags",
+        'refs/tags',
       ],
-      repoRoot,
+      repoRoot
     );
   } catch {
     return [];
   }
   return out
-    .split("\n")
+    .split('\n')
     .filter(Boolean)
     .map((line) => {
       const [tag, obj, ts, subject] = line.split(US);
       let sha = obj;
       try {
-        sha = git(["rev-list", "-n", "1", tag], repoRoot).trim();
+        sha = git(['rev-list', '-n', '1', tag], repoRoot).trim();
       } catch {
         /* lightweight tag: objectname is already the commit */
       }
-      return { tag, sha, ts: Number(ts), subject: subject || "" };
+      return { tag, sha, ts: Number(ts), subject: subject || '' };
     });
 }
 
 function readTree(sha, repoRoot) {
-  const out = execFileSync("git", ["ls-tree", "-r", "-z", sha], {
+  const out = execFileSync('git', ['ls-tree', '-r', '-z', sha], {
     cwd: repoRoot,
-    encoding: "utf8",
+    encoding: 'utf8',
     maxBuffer: 1024 * 1024 * 256,
   });
   const tree = new Map();
-  for (const entry of out.split("\0")) {
+  for (const entry of out.split('\0')) {
     if (!entry) continue;
-    const tabAt = entry.indexOf("\t");
+    const tabAt = entry.indexOf('\t');
     const parts = entry.slice(0, tabAt).split(/\s+/);
-    if (parts[1] !== "blob") continue;
+    if (parts[1] !== 'blob') continue;
     tree.set(entry.slice(tabAt + 1), parts[2]);
   }
   return tree;
@@ -196,17 +185,17 @@ function measureBlobs(shas, repoRoot, onProgress) {
   const measured = new Map();
   for (let start = 0; start < unique.length; start += BLOB_BATCH) {
     const batch = unique.slice(start, start + BLOB_BATCH);
-    const out = execFileSync("git", ["cat-file", "--batch"], {
+    const out = execFileSync('git', ['cat-file', '--batch'], {
       cwd: repoRoot,
-      input: Buffer.from(`${batch.join("\n")}\n`, "utf8"),
+      input: Buffer.from(`${batch.join('\n')}\n`, 'utf8'),
       maxBuffer: 1024 * 1024 * 512,
     });
     let cursor = 0;
     while (cursor < out.length) {
       const headerEnd = out.indexOf(0x0a, cursor);
       if (headerEnd === -1) break;
-      const header = out.toString("utf8", cursor, headerEnd).split(" ");
-      if (header[1] !== "blob") {
+      const header = out.toString('utf8', cursor, headerEnd).split(' ');
+      if (header[1] !== 'blob') {
         cursor = headerEnd + 1;
         continue;
       }
@@ -216,15 +205,13 @@ function measureBlobs(shas, repoRoot, onProgress) {
       const binary = body.subarray(0, BINARY_SNIFF).includes(0);
       let lines = 0;
       if (!binary && size > 0) {
-        for (let i = 0; i < body.length; i += 1)
-          if (body[i] === 0x0a) lines += 1;
+        for (let i = 0; i < body.length; i += 1) if (body[i] === 0x0a) lines += 1;
         if (body[body.length - 1] !== 0x0a) lines += 1;
       }
       measured.set(header[0], { lines, bytes: size, binary });
       cursor = bodyStart + size + 1;
     }
-    if (onProgress)
-      onProgress(Math.min(start + BLOB_BATCH, unique.length), unique.length);
+    if (onProgress) onProgress(Math.min(start + BLOB_BATCH, unique.length), unique.length);
   }
   return measured;
 }
@@ -234,10 +221,10 @@ export function repoName(repoRoot) {
   try {
     // stderr is swallowed: a repository with no remote is perfectly normal, and
     // git's complaint would otherwise land in the middle of CI output.
-    const url = execFileSync("git", ["remote", "get-url", "origin"], {
+    const url = execFileSync('git', ['remote', 'get-url', 'origin'], {
       cwd: repoRoot,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
     }).trim();
     const m = url.match(/[:/]([^/:]+\/[^/]+?)(?:\.git)?$/);
     if (m) return m[1];
@@ -255,28 +242,21 @@ export function repoName(repoRoot) {
  * @param {(msg: string) => void} [options.log]
  * @returns {object} datasets
  */
-export function extract({
-  repoRoot,
-  snapshotDays = 7,
-  maxLanes = 12,
-  log = () => {},
-}) {
+export function extract({ repoRoot, snapshotDays = 7, maxLanes = 12, log = () => {} }) {
   let shallow = false;
   try {
-    shallow =
-      git(["rev-parse", "--is-shallow-repository"], repoRoot).trim() === "true";
+    shallow = git(['rev-parse', '--is-shallow-repository'], repoRoot).trim() === 'true';
   } catch {
     throw new Error(`${repoRoot} is not a git repository`);
   }
 
-  log("reading git log...");
+  log('reading git log...');
   const raw = readCommits(repoRoot);
-  if (raw.length === 0) throw new Error("this repository has no commits");
+  if (raw.length === 0) throw new Error('this repository has no commits');
   const tags = readTags(repoRoot);
 
   const tagsBySha = new Map();
-  for (const t of tags)
-    tagsBySha.set(t.sha, (tagsBySha.get(t.sha) || []).concat([t.tag]));
+  for (const t of tags) tagsBySha.set(t.sha, (tagsBySha.get(t.sha) || []).concat([t.tag]));
 
   const stepMs = snapshotDays * 86400000;
   const anchorIndexes = new Set([0, raw.length - 1]);
@@ -291,15 +271,13 @@ export function extract({
 
   log(`reading ${anchorIndexes.size} tree anchors...`);
   const anchorTrees = new Map();
-  for (const i of anchorIndexes)
-    anchorTrees.set(i, readTree(raw[i].sha, repoRoot));
+  for (const i of anchorIndexes) anchorTrees.set(i, readTree(raw[i].sha, repoRoot));
 
   const wanted = [];
   for (const c of raw) for (const ev of c.rawEvents) wanted.push(ev.dstSha);
-  for (const tree of anchorTrees.values())
-    for (const blob of tree.values()) wanted.push(blob);
+  for (const tree of anchorTrees.values()) for (const blob of tree.values()) wanted.push(blob);
   const blobs = measureBlobs(wanted, repoRoot, (done, total) =>
-    log(`measuring blobs ${done}/${total}`, true),
+    log(`measuring blobs ${done}/${total}`, true)
   );
   const linesOf = (sha) => (sha && blobs.get(sha) ? blobs.get(sha).lines : 0);
 
@@ -311,7 +289,7 @@ export function extract({
       path: p,
       size: linesOf(blob),
     })),
-    { maxLanes },
+    { maxLanes }
   );
   const laneOf = lanes.laneOf;
 
@@ -352,16 +330,11 @@ export function extract({
       addTotal += add;
       delTotal += del;
 
-      if (ev.status === "R" && ev.from) setPath(ev.from, null);
-      if (ev.status === "D") setPath(ev.path, null);
+      if (ev.status === 'R' && ev.from) setPath(ev.from, null);
+      if (ev.status === 'D') setPath(ev.path, null);
       else setPath(ev.path, ev.dstSha);
 
-      if (
-        ev.status === "R" &&
-        ev.from &&
-        lifespans.has(ev.from) &&
-        !lifespans.has(ev.path)
-      ) {
+      if (ev.status === 'R' && ev.from && lifespans.has(ev.from) && !lifespans.has(ev.path)) {
         const moved = lifespans.get(ev.from);
         lifespans.set(ev.path, {
           ...moved,
@@ -392,7 +365,7 @@ export function extract({
       life.add += add;
       life.del += del;
       life.authors.add(c.author.name);
-      life.diedTs = ev.status === "D" ? ts : null;
+      life.diedTs = ev.status === 'D' ? ts : null;
       life.lastTs = ts;
       life.peakLoc = Math.max(life.peakLoc, locAfter);
       life.binary = binary || life.binary === true;
@@ -432,7 +405,7 @@ export function extract({
         name: c.author.name,
         email: c.author.email,
         bot: /\[bot\]|noreply@anthropic|cursoragent|actions@github/i.test(
-          `${c.author.name} ${c.author.email}`,
+          `${c.author.name} ${c.author.email}`
         ),
         commits: 0,
         merges: 0,
@@ -581,7 +554,7 @@ export function extract({
       lastDate: isoDay(p.lastTs),
       activeDays: p.days.size,
       lanes: Object.fromEntries(
-        Object.entries(p.lanes).sort((a, b) => Number(b[1]) - Number(a[1])),
+        Object.entries(p.lanes).sort((a, b) => Number(b[1]) - Number(a[1]))
       ),
     }))
     .sort((a, b) => b.commits - a.commits);
@@ -622,7 +595,7 @@ export function extract({
         ts: match ? match.ts : t.ts,
         date: isoDay(match ? match.ts : t.ts),
         commitIndex: match ? match.i : null,
-        subject: t.subject || (match ? match.subject : ""),
+        subject: t.subject || (match ? match.subject : ''),
         loc: match ? match.loc : null,
         trackedFiles: match ? match.trackedFiles : null,
       };
@@ -632,8 +605,8 @@ export function extract({
   const meta = {
     schemaVersion: 2,
     repo: repoName(repoRoot),
-    source: "git",
-    units: "lines",
+    source: 'git',
+    units: 'lines',
     generatedAt: new Date().toISOString(),
     shallow,
     snapshotDays,
@@ -665,16 +638,7 @@ export function extract({
     meta,
     commits,
     fileEvents: {
-      columns: [
-        "commit",
-        "status",
-        "path",
-        "add",
-        "del",
-        "locAfter",
-        "renamedFrom",
-        "lane",
-      ],
+      columns: ['commit', 'status', 'path', 'add', 'del', 'locAfter', 'renamedFrom', 'lane'],
       statusCodes: STATUS_CODES,
       rows: eventRows,
     },
@@ -704,8 +668,8 @@ export function extract({
           changes: f.changes,
         })),
       punchcard: {
-        rows: "UTC day-of-week, 0=Sunday",
-        cols: "UTC hour",
+        rows: 'UTC day-of-week, 0=Sunday',
+        cols: 'UTC hour',
         counts: punchcard,
       },
       busiestDays: [...dense]

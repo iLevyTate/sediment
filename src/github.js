@@ -16,22 +16,58 @@
  * zero), and events land at anchor granularity. Both are stated on the page.
  */
 
-import { deriveLanes, isBinaryPath } from "./lanes.js";
+import { deriveLanes, isBinaryPath } from './lanes.js';
 
-const API = "https://api.github.com";
+const API = 'https://api.github.com';
 export const STATUS = { A: 0, M: 1, D: 2 };
 
 /** @param {string} input owner/repo, or any github URL containing it */
 export function parseRepo(input) {
-  const cleaned = String(input || "")
+  const cleaned = String(input || '')
     .trim()
-    .replace(/^(https?:\/\/)?(www\.)?github\.com\//i, "");
+    .replace(/^(https?:\/\/)?(www\.)?github\.com\//i, '');
   const m = cleaned.match(/^([\w.-]+)\/([\w.-]+?)(?:\.git)?(?:[/#?].*)?$/);
   if (!m) return null;
   return { owner: m[1], repo: m[2] };
 }
 
 const isoDay = (ts) => new Date(ts * 1000).toISOString().slice(0, 10);
+
+/**
+ * Ask GitHub what budget we have. This endpoint does not itself count against
+ * the limit, so it is free to call before deciding how much to fetch.
+ * @returns {Promise<{remaining: number, limit: number, reset: number}>}
+ */
+export async function checkRate(token = '', fetchImpl = fetch) {
+  const headers = { Accept: 'application/vnd.github+json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  try {
+    const res = await fetchImpl(`${API}/rate_limit`, { headers });
+    if (!res.ok) throw new Error(String(res.status));
+    const body = await res.json();
+    const core = body.resources ? body.resources.core : body.rate;
+    return { remaining: core.remaining, limit: core.limit, reset: core.reset };
+  } catch {
+    // Unreachable or blocked: assume the unauthenticated allowance.
+    return { remaining: 60, limit: 60, reset: 0 };
+  }
+}
+
+/**
+ * Split a request budget between commit pages and tree snapshots.
+ *
+ * Every commit page is 100 commits; every anchor is one tree. Anchors are what
+ * make the section move, so they get a floor — below about eight the bands step
+ * rather than grow — and the commit pages take whatever is left.
+ * @param {number} remaining
+ */
+export function planBudget(remaining) {
+  const reserve = 4; // repo, tags, and slack for a retry
+  const usable = Math.max(4, remaining - reserve);
+  const anchors = Math.max(4, Math.min(26, Math.floor(usable * 0.45)));
+  const pages = Math.max(1, usable - anchors);
+  return { anchors, maxCommits: pages * 100, budget: usable };
+}
 
 /**
  * @param {object} o
@@ -46,73 +82,63 @@ const isoDay = (ts) => new Date(ts * 1000).toISOString().slice(0, 10);
 export async function fetchHistory({
   owner,
   repo,
-  token = "",
+  token = '',
   maxCommits = 4000,
   anchors = 26,
   maxLanes = 12,
   onProgress = () => {},
   fetchImpl = fetch,
 }) {
-  const headers = { Accept: "application/vnd.github+json" };
+  const headers = { Accept: 'application/vnd.github+json' };
   if (token) headers.Authorization = `Bearer ${token}`;
   let rateRemaining = null;
 
   async function api(pathname) {
     const res = await fetchImpl(`${API}${pathname}`, { headers });
-    const remaining =
-      res.headers &&
-      res.headers.get &&
-      res.headers.get("x-ratelimit-remaining");
-    if (remaining !== null && remaining !== undefined)
-      rateRemaining = Number(remaining);
-    if (res.status === 404)
-      throw new Error(`${owner}/${repo} not found, or it is private`);
+    const remaining = res.headers && res.headers.get && res.headers.get('x-ratelimit-remaining');
+    if (remaining !== null && remaining !== undefined) rateRemaining = Number(remaining);
+    if (res.status === 404) throw new Error(`${owner}/${repo} not found, or it is private`);
     if (res.status === 403 || res.status === 429) {
       throw new Error(
         rateRemaining === 0
-          ? "GitHub rate limit reached. Add a personal access token, or wait for the reset."
-          : `GitHub refused the request (${res.status}).`,
+          ? 'GitHub rate limit reached. Add a personal access token, or wait for the reset.'
+          : `GitHub refused the request (${res.status}).`
       );
     }
-    if (!res.ok)
-      throw new Error(`GitHub returned ${res.status} for ${pathname}`);
+    if (!res.ok) throw new Error(`GitHub returned ${res.status} for ${pathname}`);
     return {
       body: await res.json(),
-      link: (res.headers.get && res.headers.get("link")) || "",
+      link: (res.headers.get && res.headers.get('link')) || '',
     };
   }
 
-  onProgress("reading repository");
+  onProgress('reading repository');
   const { body: info } = await api(`/repos/${owner}/${repo}`);
   const branch = info.default_branch;
 
   // --- commits -------------------------------------------------------------
-  onProgress("reading commits");
+  onProgress('reading commits');
   const PER = 100;
-  const first = await api(
-    `/repos/${owner}/${repo}/commits?sha=${branch}&per_page=${PER}`,
-  );
-  if (!first.body.length) throw new Error("this repository has no commits");
+  const first = await api(`/repos/${owner}/${repo}/commits?sha=${branch}&per_page=${PER}`);
+  if (!first.body.length) throw new Error('this repository has no commits');
 
   // The Link header tells us the page count up front, but only when CORS
   // exposes it — so it drives the progress bar, never the loop. Paging stops on
   // a short page, which is true regardless of what headers arrive.
-  const lastPage = Number(
-    (first.link.match(/[?&]page=(\d+)[^>]*>;\s*rel="last"/) || [])[1] || 0,
-  );
+  const lastPage = Number((first.link.match(/[?&]page=(\d+)[^>]*>;\s*rel="last"/) || [])[1] || 0);
   const pageCap = Math.max(1, Math.ceil(maxCommits / PER));
   let rows = first.body.slice();
   let page = 1;
   let batch = first.body.length;
   while (batch === PER && page < pageCap) {
     page += 1;
-    const of = lastPage ? `/${Math.min(lastPage, pageCap)}` : "";
+    const of = lastPage ? `/${Math.min(lastPage, pageCap)}` : '';
     onProgress(
       `reading commits — page ${page}${of}`,
-      lastPage ? page / Math.min(lastPage, pageCap) : 0.5,
+      lastPage ? page / Math.min(lastPage, pageCap) : 0.5
     );
     const next = await api(
-      `/repos/${owner}/${repo}/commits?sha=${branch}&per_page=${PER}&page=${page}`,
+      `/repos/${owner}/${repo}/commits?sha=${branch}&per_page=${PER}&page=${page}`
     );
     batch = next.body.length;
     rows = rows.concat(next.body);
@@ -127,13 +153,9 @@ export async function fetchHistory({
       short: c.sha.slice(0, 8),
       ts: Math.floor(Date.parse(c.commit.committer.date) / 1000),
       authorTs: Math.floor(Date.parse(c.commit.author.date) / 1000),
-      name: c.commit.author.name || (c.author && c.author.login) || "unknown",
-      email: (
-        c.commit.author.email ||
-        (c.author && c.author.login) ||
-        "unknown"
-      ).toLowerCase(),
-      subject: String(c.commit.message).split("\n")[0],
+      name: c.commit.author.name || (c.author && c.author.login) || 'unknown',
+      email: (c.commit.author.email || (c.author && c.author.login) || 'unknown').toLowerCase(),
+      subject: String(c.commit.message).split('\n')[0],
       parents: c.parents ? c.parents.length : 1,
     }))
     .sort((a, b) => a.ts - b.ts);
@@ -151,25 +173,20 @@ export async function fetchHistory({
   const anchorCount = Math.max(2, Math.min(anchors, commitsRaw.length));
   const anchorIdx = [];
   for (let i = 0; i < anchorCount; i += 1) {
-    anchorIdx.push(
-      Math.round((i * (commitsRaw.length - 1)) / (anchorCount - 1)),
-    );
+    anchorIdx.push(Math.round((i * (commitsRaw.length - 1)) / (anchorCount - 1)));
   }
   const uniqueAnchors = [...new Set(anchorIdx)];
 
   const trees = [];
   for (let i = 0; i < uniqueAnchors.length; i += 1) {
     const idx = uniqueAnchors[i];
-    onProgress(
-      `reading tree ${i + 1}/${uniqueAnchors.length}`,
-      i / uniqueAnchors.length,
-    );
+    onProgress(`reading tree ${i + 1}/${uniqueAnchors.length}`, i / uniqueAnchors.length);
     const { body } = await api(
-      `/repos/${owner}/${repo}/git/trees/${commitsRaw[idx].sha}?recursive=1`,
+      `/repos/${owner}/${repo}/git/trees/${commitsRaw[idx].sha}?recursive=1`
     );
     const map = new Map();
     for (const e of body.tree || []) {
-      if (e.type !== "blob") continue;
+      if (e.type !== 'blob') continue;
       map.set(e.path, {
         sha: e.sha,
         size: isBinaryPath(e.path) ? 0 : e.size || 0,
@@ -187,7 +204,7 @@ export async function fetchHistory({
   const finalTree = trees[trees.length - 1];
   const lanes = deriveLanes(
     [...finalTree.map.entries()].map(([p, v]) => ({ path: p, size: v.size })),
-    { maxLanes },
+    { maxLanes }
   );
 
   // --- events by diffing consecutive trees ---------------------------------
@@ -202,32 +219,12 @@ export async function fetchHistory({
 
     for (const [p, v] of cur.map) {
       const before = prev.map.get(p);
-      if (!before)
-        eventRows.push([
-          place(),
-          STATUS.A,
-          p,
-          0,
-          0,
-          v.size,
-          0,
-          lanes.laneOf(p),
-        ]);
+      if (!before) eventRows.push([place(), STATUS.A, p, 0, 0, v.size, 0, lanes.laneOf(p)]);
       else if (before.sha !== v.sha)
-        eventRows.push([
-          place(),
-          STATUS.M,
-          p,
-          0,
-          0,
-          v.size,
-          0,
-          lanes.laneOf(p),
-        ]);
+        eventRows.push([place(), STATUS.M, p, 0, 0, v.size, 0, lanes.laneOf(p)]);
     }
     for (const p of prev.map.keys()) {
-      if (!cur.map.has(p))
-        eventRows.push([place(), STATUS.D, p, 0, 0, 0, 0, lanes.laneOf(p)]);
+      if (!cur.map.has(p)) eventRows.push([place(), STATUS.D, p, 0, 0, 0, 0, lanes.laneOf(p)]);
     }
   }
   eventRows.sort((a, b) => a[0] - b[0]);
@@ -244,29 +241,21 @@ export async function fetchHistory({
   const sizeAt = (index) => {
     // A repository with a single anchor (one commit, or every anchor landing on
     // the same commit) has nothing to interpolate between.
-    if (trees.length < 2)
-      return { loc: treeSum[0].bytes, files: treeSum[0].files };
+    if (trees.length < 2) return { loc: treeSum[0].bytes, files: treeSum[0].files };
     let hi = 1;
     while (hi < trees.length - 1 && trees[hi].index < index) hi += 1;
     const a = trees[hi - 1];
     const b = trees[hi];
     const f =
-      b.index === a.index
-        ? 0
-        : Math.max(0, Math.min(1, (index - a.index) / (b.index - a.index)));
+      b.index === a.index ? 0 : Math.max(0, Math.min(1, (index - a.index) / (b.index - a.index)));
     return {
-      loc: Math.round(
-        treeSum[hi - 1].bytes + (treeSum[hi].bytes - treeSum[hi - 1].bytes) * f,
-      ),
-      files: Math.round(
-        treeSum[hi - 1].files + (treeSum[hi].files - treeSum[hi - 1].files) * f,
-      ),
+      loc: Math.round(treeSum[hi - 1].bytes + (treeSum[hi].bytes - treeSum[hi - 1].bytes) * f),
+      files: Math.round(treeSum[hi - 1].files + (treeSum[hi].files - treeSum[hi - 1].files) * f),
     };
   };
 
   const tagsBySha = new Map();
-  for (const t of tags)
-    tagsBySha.set(t.sha, (tagsBySha.get(t.sha) || []).concat([t.tag]));
+  for (const t of tags) tagsBySha.set(t.sha, (tagsBySha.get(t.sha) || []).concat([t.tag]));
 
   const people = new Map();
   const commits = commitsRaw.map((c, i) => {
@@ -276,9 +265,7 @@ export async function fetchHistory({
       person = {
         name: c.name,
         email: c.email,
-        bot: /\[bot\]|noreply@anthropic|cursoragent|actions@github/i.test(
-          `${c.name} ${c.email}`,
-        ),
+        bot: /\[bot\]|noreply@anthropic|cursoragent|actions@github/i.test(`${c.name} ${c.email}`),
         commits: 0,
         merges: 0,
         add: 0,
@@ -358,17 +345,11 @@ export async function fetchHistory({
     .sort((a, b) => a.ts - b.ts);
 
   const last = commits[commits.length - 1];
-  const notes = [
-    `Built from the GitHub API: sizes are file bytes, binaries counted as zero`,
-  ];
+  const notes = [`Built from the GitHub API: sizes are file bytes, binaries counted as zero`];
   if (eventRows.length)
-    notes.push(
-      `file events recovered by diffing ${trees.length} tree snapshots`,
-    );
-  if (truncated)
-    notes.push(`showing the most recent ${commits.length} commits`);
-  if (finalTree.truncated)
-    notes.push("the tree listing was truncated by GitHub");
+    notes.push(`file events recovered by diffing ${trees.length} tree snapshots`);
+  if (truncated) notes.push(`showing the most recent ${commits.length} commits`);
+  if (finalTree.truncated) notes.push('the tree listing was truncated by GitHub');
 
   return {
     rateRemaining,
@@ -377,9 +358,9 @@ export async function fetchHistory({
       meta: {
         schemaVersion: 2,
         repo: `${owner}/${repo}`,
-        source: "github",
-        units: "bytes",
-        note: `${notes.join("; ")}.`,
+        source: 'github',
+        units: 'bytes',
+        note: `${notes.join('; ')}.`,
         generatedAt: new Date().toISOString(),
         commits: commits.length,
         merges: commits.filter((c) => c.merge).length,
@@ -404,16 +385,7 @@ export async function fetchHistory({
       releases,
       contributors,
       fileEvents: {
-        columns: [
-          "commit",
-          "status",
-          "path",
-          "add",
-          "del",
-          "locAfter",
-          "renamedFrom",
-          "lane",
-        ],
+        columns: ['commit', 'status', 'path', 'add', 'del', 'locAfter', 'renamedFrom', 'lane'],
         rows: eventRows,
       },
     },

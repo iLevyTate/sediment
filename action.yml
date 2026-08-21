@@ -11,39 +11,39 @@ inputs:
     default: sediment
   video:
     description: Also record an mp4. Installs ffmpeg and a headless Chromium, so it adds a few minutes.
-    default: "false"
+    default: 'false'
   gif:
     description: Also write a gif next to the mp4 — this is the file you can embed in a README.
-    default: "false"
+    default: 'false'
   seconds:
     description: Length of the deposition in the video.
-    default: "30"
+    default: '30'
   fps:
     description: Video frame rate.
-    default: "30"
+    default: '30'
   width:
     description: Video width.
-    default: "1920"
+    default: '1920'
   height:
     description: Video height.
-    default: "1080"
+    default: '1080'
   gif-width:
     description: Gif width. Smaller keeps READMEs light.
-    default: "900"
+    default: '900'
   theme:
     description: dark or light.
     default: dark
   lanes:
     description: Maximum bands in the section.
-    default: "12"
+    default: '12'
   json:
     description: Also write the full datasets as JSON.
-    default: "false"
+    default: 'false'
   publish-branch:
     description: >
       Force-push the output to this branch, so raw.githubusercontent.com URLs stay current and a
       plain image link in your README keeps working. Leave empty to skip. Needs contents: write.
-    default: ""
+    default: ''
   token:
     description: Token used to push publish-branch.
     default: ${{ github.token }}
@@ -74,7 +74,7 @@ runs:
 
     - uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version: '20'
 
     - name: Install recording tools
       if: inputs.video == 'true' || inputs.gif == 'true'

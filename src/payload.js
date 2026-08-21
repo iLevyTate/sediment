@@ -6,22 +6,9 @@
  * measuring bytes). Whatever the source, the player receives one shape.
  */
 
-import { lanePalette } from "./palette.js";
+import { lanePalette } from './palette.js';
 
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 /**
  * Axis ticks, coarsened with the span so a decade of history does not print a
@@ -43,9 +30,7 @@ export function timeTicks(t0, t1) {
       const yy = String(cursor.getUTCFullYear()).slice(2);
       ticks.push([
         Math.round(cursor.getTime() / 1000),
-        stepMonths === 12
-          ? String(cursor.getUTCFullYear())
-          : `${MONTHS[m]} '${yy}`,
+        stepMonths === 12 ? String(cursor.getUTCFullYear()) : `${MONTHS[m]} '${yy}`,
       ]);
     }
     cursor.setUTCMonth(cursor.getUTCMonth() + 1);
@@ -58,15 +43,7 @@ export function timeTicks(t0, t1) {
  * @returns {object} payload
  */
 export function buildPayload(data) {
-  const {
-    meta,
-    lanes,
-    commits,
-    snapshots,
-    releases,
-    contributors,
-    fileEvents,
-  } = data;
+  const { meta, lanes, commits, snapshots, releases, contributors, fileEvents } = data;
 
   const authors = [];
   const authorIndex = new Map();
@@ -93,11 +70,11 @@ export function buildPayload(data) {
   let events = [];
   if (fileEvents && fileEvents.rows.length) {
     const col = (name) => fileEvents.columns.indexOf(name);
-    const cCommit = col("commit");
-    const cStatus = col("status");
-    const cPath = col("path");
-    const cLoc = col("locAfter");
-    const cLane = col("lane"); // both producers resolve the lane up front
+    const cCommit = col('commit');
+    const cStatus = col('status');
+    const cPath = col('path');
+    const cLoc = col('locAfter');
+    const cLane = col('lane'); // both producers resolve the lane up front
     events = fileEvents.rows.map((row) => [
       row[cCommit],
       row[cStatus],
@@ -112,27 +89,22 @@ export function buildPayload(data) {
 
   const laneSeries = snapshots.map((s) => [
     s.ts,
-    Array.from({ length: laneCount }, (_, i) =>
-      s.lanes[i] ? s.lanes[i].loc : 0,
-    ),
+    Array.from({ length: laneCount }, (_, i) => (s.lanes[i] ? s.lanes[i].loc : 0)),
   ]);
 
   let maxLaneLoc = 1;
-  for (const [, locs] of laneSeries)
-    for (const v of locs) if (v > maxLaneLoc) maxLaneLoc = v;
+  for (const [, locs] of laneSeries) for (const v of locs) if (v > maxLaneLoc) maxLaneLoc = v;
 
   // The wordmark is set two-tone; for `owner/name` the owner is the quiet half.
-  const slash = meta.repo.lastIndexOf("/");
+  const slash = meta.repo.lastIndexOf('/');
   const titleParts =
-    slash === -1
-      ? ["", meta.repo]
-      : [`${meta.repo.slice(0, slash)}/`, meta.repo.slice(slash + 1)];
+    slash === -1 ? ['', meta.repo] : [`${meta.repo.slice(0, slash)}/`, meta.repo.slice(slash + 1)];
 
   return {
     title: meta.repo,
     titleParts,
-    units: meta.units || "lines",
-    source: meta.source || "git",
+    units: meta.units || 'lines',
+    source: meta.source || 'git',
     meta: {
       commits: meta.commits,
       merges: meta.merges,
@@ -142,7 +114,7 @@ export function buildPayload(data) {
       filesAlive: meta.filesAlive,
       finalLoc: meta.finalLoc,
       spanDays: meta.range.spanDays,
-      note: meta.note || "",
+      note: meta.note || '',
     },
     range: [t0, t1],
     maxLoc: Math.max(1, ...snapshots.map((s) => s.totalLoc)),
@@ -177,12 +149,11 @@ export function buildPayload(data) {
  * @param {string} template @param {object} payload @returns {string}
  */
 export function buildHtml(template, payload) {
-  const MARKER = "/*__PAYLOAD__*/ null";
-  if (!template.includes(MARKER))
-    throw new Error("player template is missing the payload marker");
+  const MARKER = '/*__PAYLOAD__*/ null';
+  if (!template.includes(MARKER)) throw new Error('player template is missing the payload marker');
   const json = JSON.stringify(payload)
-    .replace(/</g, "\\u003c")
-    .replace(/\u2028/g, "\\u2028")
-    .replace(/\u2029/g, "\\u2029");
+    .replace(/</g, '\\u003c')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
   return template.replace(MARKER, json);
 }

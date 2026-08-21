@@ -10,52 +10,46 @@
  * Needs playwright (optional dependency) and ffmpeg on PATH.
  */
 
-import { spawn } from "child_process";
-import fs from "fs";
-import path from "path";
-import { pathToFileURL } from "url";
+import { spawn } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { pathToFileURL } from 'url';
 
 function runFfmpeg(label, args) {
   return new Promise((resolve, reject) => {
-    const proc = spawn("ffmpeg", args, { stdio: ["ignore", "ignore", "pipe"] });
-    let err = "";
-    proc.stderr.on("data", (d) => {
+    const proc = spawn('ffmpeg', args, { stdio: ['ignore', 'ignore', 'pipe'] });
+    let err = '';
+    proc.stderr.on('data', (d) => {
       err += d.toString();
     });
-    proc.on("error", (e) =>
-      reject(
-        new Error(
-          `${label}: could not run ffmpeg (${e.message}). Is it on PATH?`,
-        ),
-      ),
+    proc.on('error', (e) =>
+      reject(new Error(`${label}: could not run ffmpeg (${e.message}). Is it on PATH?`))
     );
-    proc.on("close", (code) =>
-      code === 0
-        ? resolve()
-        : reject(new Error(`${label} failed (${code}):\n${err.slice(-1200)}`)),
+    proc.on('close', (code) =>
+      code === 0 ? resolve() : reject(new Error(`${label} failed (${code}):\n${err.slice(-1200)}`))
     );
   });
 }
 
 /** Two-pass GIF: a per-clip palette handles gradient-heavy strata far better. */
 async function toGif(mp4Path, gifPath, width, fps) {
-  const palette = path.join(path.dirname(gifPath), ".sediment-palette.png");
+  const palette = path.join(path.dirname(gifPath), '.sediment-palette.png');
   const filters = `fps=${fps},scale=${width}:-1:flags=lanczos`;
-  await runFfmpeg("palettegen", [
-    "-y",
-    "-i",
+  await runFfmpeg('palettegen', [
+    '-y',
+    '-i',
     mp4Path,
-    "-vf",
+    '-vf',
     `${filters},palettegen=stats_mode=diff`,
     palette,
   ]);
-  await runFfmpeg("paletteuse", [
-    "-y",
-    "-i",
+  await runFfmpeg('paletteuse', [
+    '-y',
+    '-i',
     mp4Path,
-    "-i",
+    '-i',
     palette,
-    "-lavfi",
+    '-lavfi',
     `${filters}[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle`,
     gifPath,
   ]);
@@ -74,7 +68,7 @@ export async function record({
   fps = 30,
   width = 1920,
   height = 1080,
-  theme = "dark",
+  theme = 'dark',
   hold = 3,
   gif = false,
   gifWidth = 900,
@@ -83,10 +77,10 @@ export async function record({
 }) {
   let chromium;
   try {
-    ({ chromium } = await import("playwright"));
+    ({ chromium } = await import('playwright'));
   } catch {
     throw new Error(
-      "recording needs playwright — install it with `npm i -D playwright` and `npx playwright install chromium`",
+      'recording needs playwright — install it with `npm i -D playwright` and `npx playwright install chromium`'
     );
   }
 
@@ -96,19 +90,19 @@ export async function record({
 
   const browser = await chromium.launch({
     executablePath: process.env.SEDIMENT_CHROMIUM || undefined,
-    args: ["--force-device-scale-factor=1", "--hide-scrollbars"],
+    args: ['--force-device-scale-factor=1', '--hide-scrollbars'],
   });
   const context = await browser.newContext({
     viewport: { width, height },
     deviceScaleFactor: 1,
-    colorScheme: theme === "light" ? "light" : "dark",
-    reducedMotion: "no-preference",
+    colorScheme: theme === 'light' ? 'light' : 'dark',
+    reducedMotion: 'no-preference',
   });
   const page = await context.newPage();
   const errors = [];
-  page.on("pageerror", (e) => errors.push(e.message));
+  page.on('pageerror', (e) => errors.push(e.message));
 
-  await page.goto(url, { waitUntil: "load" });
+  await page.goto(url, { waitUntil: 'load' });
   await page.waitForFunction(() => Boolean(window.__strata), null, {
     timeout: 20000,
   });
@@ -122,75 +116,69 @@ export async function record({
     window.__strata.setSpeed(46 / s);
     window.__strata.reset();
   }, seconds);
-  log(
-    `${intro}s title + ${seconds}s deposition + ${hold}s hold @ ${fps}fps, ${width}x${height}`,
-  );
+  log(`${intro}s title + ${seconds}s deposition + ${hold}s hold @ ${fps}fps, ${width}x${height}`);
 
   const ffmpeg = spawn(
-    "ffmpeg",
+    'ffmpeg',
     [
-      "-y",
-      "-f",
-      "image2pipe",
-      "-c:v",
-      "png",
-      "-r",
+      '-y',
+      '-f',
+      'image2pipe',
+      '-c:v',
+      'png',
+      '-r',
       String(fps),
-      "-i",
-      "pipe:0",
-      "-c:v",
-      "libx264",
-      "-preset",
-      "slow",
-      "-crf",
-      "20",
-      "-pix_fmt",
-      "yuv420p",
-      "-movflags",
-      "+faststart",
-      "-r",
+      '-i',
+      'pipe:0',
+      '-c:v',
+      'libx264',
+      '-preset',
+      'slow',
+      '-crf',
+      '20',
+      '-pix_fmt',
+      'yuv420p',
+      '-movflags',
+      '+faststart',
+      '-r',
       String(fps),
       outPath,
     ],
-    { stdio: ["pipe", "ignore", "pipe"] },
+    { stdio: ['pipe', 'ignore', 'pipe'] }
   );
-  let ffErr = "";
-  ffmpeg.stderr.on("data", (d) => {
+  let ffErr = '';
+  ffmpeg.stderr.on('data', (d) => {
     ffErr += d.toString();
   });
   const encoded = new Promise((resolve, reject) => {
-    ffmpeg.on("error", (e) =>
-      reject(new Error(`could not run ffmpeg (${e.message}). Is it on PATH?`)),
+    ffmpeg.on('error', (e) =>
+      reject(new Error(`could not run ffmpeg (${e.message}). Is it on PATH?`))
     );
-    ffmpeg.on("close", (code) =>
-      code === 0
-        ? resolve()
-        : reject(new Error(`ffmpeg failed (${code}):\n${ffErr.slice(-1500)}`)),
+    ffmpeg.on('close', (code) =>
+      code === 0 ? resolve() : reject(new Error(`ffmpeg failed (${code}):\n${ffErr.slice(-1500)}`))
     );
   });
   const write = (buf) =>
-    ffmpeg.stdin.write(buf)
-      ? Promise.resolve()
-      : new Promise((r) => ffmpeg.stdin.once("drain", r));
+    ffmpeg.stdin.write(buf) ? Promise.resolve() : new Promise((r) => ffmpeg.stdin.once('drain', r));
 
   const dt = 1 / fps;
   const total = runFrames + holdFrames;
   for (let f = 0; f < total; f += 1) {
     await page.evaluate((step) => window.__strata.step(step), dt);
-    await write(await page.screenshot({ type: "png" }));
+    await write(await page.screenshot({ type: 'png' }));
     if (f % Math.max(1, fps * 2) === 0) log(`frame ${f + 1}/${total}`, true);
   }
   log(`frame ${total}/${total}`, true);
-  log("");
+  log('');
 
   ffmpeg.stdin.end();
   await encoded;
   await browser.close();
-  if (errors.length) log(`page errors: ${errors.join("; ")}`);
+  if (errors.length) log(`page errors: ${errors.join('; ')}`);
 
   const result = { mp4: outPath, bytes: fs.statSync(outPath).size };
   if (gif) {
-    const gifPath = outPath.replace(/\.mp4$/, ".gif");
+    const gifPath = outPath.replace(/\.mp4$/, '.gif');
     await toGif(outPath, gifPath, gifWidth, gifFps);
     result.gif = gifPath;
     result.gifBytes = fs.statSync(gifPath).size;
