@@ -147,3 +147,4 @@ vite.config.ts.timestamp-*
 _site/
 *.mp4
 *.gif
+!assets/*.gif

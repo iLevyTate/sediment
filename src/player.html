@@ -715,8 +715,9 @@
     <div class="note">
       <h2>Make your own</h2>
       <p>
-        Run <code>npx sediment</code> in any repository to build one of these from its history, or
-        <code>npx sediment --video</code> to record it to an mp4.
+        Run <code>npx sediment</code> in any repository to build one of these from its history. Add
+        <code>--video</code> for an mp4, or <code>--gif</code> for something you can put in a
+        README.
       </p>
     </div>
   </section>
@@ -775,8 +776,8 @@
 
   const T0 = H.range[0];
   const T1 = H.range[1];
-  // A repository whose whole history lands in one second — a single commit, or
-  // an import — would otherwise divide by zero on every coordinate.
+  // A repository whose whole history lands in one second, a single commit or an
+  // import, would otherwise divide by zero on every coordinate.
   const SPAN = Math.max(1, T1 - T0);
   const BASE_DURATION = 46; // seconds of video for one full pass at 1x
 
@@ -852,8 +853,8 @@
 
   /**
    * Mix toward a grey level. Multiplying the channels instead would clip on
-   * whichever channel is already near 255 and swing the hue — which is exactly
-   * what turned the bedding-plane highlights pink on the warmer lanes.
+   * whichever channel is already near 255 and swing the hue. That is exactly what
+   * turned the bedding-plane highlights pink on the warmer lanes.
    * @param {{r:number,g:number,b:number}} c @param {number} target 0..255
    * @param {number} k 0..1
    */
@@ -1123,8 +1124,8 @@
       const c = theme.laneRgb[g.lane];
 
       // Additive glow reads as light on falling material, but it accumulates
-      // fast where grains bunch up — kept dim and reserved for large grains so
-      // a busy commit glows rather than blowing out to white.
+      // fast where grains bunch up, so it stays dim and reserved for large grains
+      // and a busy commit glows rather than blowing out to white.
       if (!g.settle && !g.dying && g.r > 3) {
         ctx.globalCompositeOperation = glow;
         const halo = ctx.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.r * 2.6);
@@ -1385,7 +1386,7 @@
     ctx.globalAlpha = seg(p, 0.52, 0.84) * cover;
     ctx.fillStyle = theme.muted;
     ctx.font = "400 12px 'IBM Plex Mono', ui-monospace, monospace";
-    ctx.fillText(`${fmtDate(T0)}  —  ${fmtDate(T1)}`, cx, cy + 58 + rise);
+    ctx.fillText(`${fmtDate(T0)}  to  ${fmtDate(T1)}`, cx, cy + 58 + rise);
     ctx.restore();
   }
 
@@ -1453,7 +1454,7 @@
     easeCounters(0); // dt of 0 means k === 1, i.e. snap straight to target
   }
 
-  /** Jump straight to the instrument — any deliberate interaction does this. */
+  /** Jump straight to the instrument. Any deliberate interaction does this. */
   function skipIntro() {
     if (introT >= INTRO) return;
     introT = INTRO;
@@ -1473,7 +1474,7 @@
     lastPaths = ['', '', '', ''];
     snapShown();
     clearStrata();
-    $('tickerSha').textContent = '—';
+    $('tickerSha').textContent = '';
     $('tickerAuthor').textContent = '';
     $('tickerBot').hidden = true;
     $('tickerSubject').textContent = 'Press play to begin deposition.';
@@ -1558,7 +1559,7 @@
     legend.replaceChildren();
     const heading = document.createElement('div');
     heading.className = 'rail-label';
-    heading.textContent = `Strata — ${UNITS} alive`;
+    heading.textContent = `Strata, ${UNITS} alive`;
     legend.appendChild(heading);
     for (let i = H.lanes.length - 1; i >= 0; i -= 1) {
       const row = document.createElement('div');
@@ -1586,7 +1587,7 @@
     }
   }
 
-  /** Four permanent slots — never rebuilt, only retitled. */
+  /** Four permanent slots, never rebuilt, only retitled. */
   function buildPathSlots() {
     const host = $('tickerPaths');
     host.replaceChildren();
@@ -1746,9 +1747,9 @@
     $('unitsLabel').textContent = UNITS === 'bytes' ? 'Bytes' : 'Lines';
 
     $('grainNote').textContent = H.events.length
-      ? `Grains fall on every file event — one per file touched by the commit under the playhead, ` +
-        `sized by the file's ${UNITS} and coloured by where it lives. Deletions rise and dissipate ` +
-        `instead of settling.`
+      ? `Grains fall on every file event. One per file touched by the commit under the ` +
+        `playhead, sized by the file's ${UNITS} and coloured by where it lives. Deletions rise ` +
+        `and drift off instead of settling.`
       : `This build has commit-level history only, so the section grows without per-file grains. ` +
         `Run sediment locally for the full file-by-file record.`;
 
@@ -1757,7 +1758,7 @@
         `${nf.format(H.meta.commits)} commits · ${nf.format(H.meta.fileEvents)} file events`
       ),
       document.createElement('br'),
-      document.createTextNode(`${fmtDate(T0)} — ${fmtDate(T1)} · ${H.meta.spanDays} days`)
+      document.createTextNode(`${fmtDate(T0)} to ${fmtDate(T1)} · ${H.meta.spanDays} days`)
     );
 
     const axis = $('axis');
@@ -1769,7 +1770,7 @@
     }
 
     $('colophon').textContent =
-      `${H.title} — ${nf.format(H.meta.commits)} commits ` +
+      `${H.title}. ${nf.format(H.meta.commits)} commits ` +
       `(${nf.format(H.meta.merges)} merges) by ${H.meta.contributors} contributors, ` +
       `${nf.format(H.meta.filesAlive)} files and ${nf.format(H.meta.finalLoc)} ${UNITS} at HEAD. ` +
       (H.meta.note || 'Built with sediment.');

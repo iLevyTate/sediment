@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * sediment — turn a git repository's history into a stratigraphic film.
+ * sediment. Turn a git repository's history into a stratigraphic film.
  *
  *   npx sediment                     # build .sediment/index.html from the repo here
  *   npx sediment --video             # ...and record it to .sediment/sediment.mp4
@@ -18,7 +18,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
 const TEMPLATE = path.join(ROOT, 'src', 'player.html');
 
-const USAGE = `sediment — turn a git repository's history into a stratigraphic film
+const USAGE = `sediment. Turn a git repository's history into a stratigraphic film
 
   sediment [options]              build the interactive page (and optionally a video)
   sediment web-assets [--out DIR] assemble the GitHub Pages site into DIR (default _site)
@@ -28,6 +28,8 @@ Options
   --out DIR          output directory (default: .sediment)
   --video            also record an mp4 (needs playwright + ffmpeg)
   --gif              also write a gif alongside the mp4
+  --gif-width N      gif width in pixels (default 900)
+  --gif-fps N        gif frame rate (default 12)
   --seconds N        deposition length in the video (default 30)
   --fps N            frames per second (default 30)
   --width N          video width (default 1920)
@@ -57,6 +59,8 @@ function parseArgs(argv) {
     lanes: 12,
     snapshotDays: 7,
     json: false,
+    gifWidth: 900,
+    gifFps: 12,
   };
   const rest = [];
   for (let i = 0; i < argv.length; i += 1) {
@@ -67,7 +71,9 @@ function parseArgs(argv) {
     else if (a === '--gif') {
       o.gif = true;
       o.video = true;
-    } else if (a === '--seconds') o.seconds = Number(argv[(i += 1)]);
+    } else if (a === '--gif-width') o.gifWidth = Number(argv[(i += 1)]);
+    else if (a === '--gif-fps') o.gifFps = Number(argv[(i += 1)]);
+    else if (a === '--seconds') o.seconds = Number(argv[(i += 1)]);
     else if (a === '--fps') o.fps = Number(argv[(i += 1)]);
     else if (a === '--width') o.width = Number(argv[(i += 1)]);
     else if (a === '--height') o.height = Number(argv[(i += 1)]);
@@ -100,8 +106,8 @@ const kb = (n) => (n < 1048576 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1048576
 /**
  * Assemble a standalone copy of the site.
  *
- * The repository root already *is* the site — index.html imports from src/ —
- * so this mirrors that layout rather than inventing a second one, and the same
+ * The repository root already *is* the site, with index.html importing from
+ * src/, so this mirrors that layout rather than inventing a second one. The same
  * relative paths work whether you serve the repo or the copy.
  */
 function webAssets(outDir) {
@@ -144,7 +150,7 @@ async function main() {
   });
 
   if (data.meta.shallow) {
-    log('WARNING: this is a shallow clone — only the fetched commits are covered.');
+    log('WARNING: this is a shallow clone, so only the fetched commits are covered.');
     log('         run `git fetch --unshallow` first for the whole history.');
   }
 
@@ -208,6 +214,8 @@ async function main() {
       theme: opts.theme,
       hold: opts.hold,
       gif: opts.gif,
+      gifWidth: opts.gifWidth,
+      gifFps: opts.gifFps,
       log,
     });
     log(`wrote ${path.relative(process.cwd(), result.mp4)} (${kb(result.bytes)})`);

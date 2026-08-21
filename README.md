@@ -1,168 +1,177 @@
 # sediment
 
-**[Try it in your browser →](https://ilevytate.github.io/sediment/)**
+**[ilevytate.github.io/sediment](https://ilevytate.github.io/sediment/)**
 
-Turn a git repository's history into a stratigraphic film.
+![Seventeen years of expressjs/express, drawn as sediment](assets/sediment.gif)
 
-Time runs left to right. Each band is a region of the tree; its thickness is the code alive at that
-moment. Grains fall on every file event, sized by the file and coloured by where it lives —
-deletions rise and dissipate instead of settling. Release tags mark themselves as the playhead
-reaches them, and the whole section is scrubbable.
+I wanted to see what my repository actually looked like over its whole life, and everything I found
+gave me either a line chart or a swarm of dots I couldn't read. So I wrote this. It draws a git
+history the way a road cut shows geology. Time runs left to right, each band is a region of the
+tree, and the thickness of a band is how much code was alive at that moment. Grains fall on every
+file a commit touches, sized by that file's line count. Deletions rise and drift off instead of
+settling.
 
-Works on any repository. Nothing to configure: the bands are derived from your own directory
-layout.
+It works on any git repository, not only the one I built it for. The animation above is
+`expressjs/express`: 6,158 commits, 390 contributors, June 2009 to July 2026, 209 files and 26,700
+lines left standing at the end. You can put the same picture in your own README and have a workflow
+keep it current.
 
-## Three ways to use it
+## Running it
 
-### 1. Locally, for exact numbers
+On a clone, with nothing installed:
 
 ```bash
-npx github:iLevyTate/sediment            # -> .sediment/index.html
-npx github:iLevyTate/sediment --gif      # -> ...and an mp4 + gif
+npx sediment
 ```
 
-No dependencies for the page — it is one self-contained HTML file you can open, email, or drop on
-your own site. Recording needs `ffmpeg` on `PATH` and `playwright` installed.
+That writes `.sediment/index.html`. Open it in a browser. The whole thing is one file with the data
+baked in, so there is no server and no build step, and it still works with the network off. Add
+`--video` for a 1080p mp4 and `--gif` for something small enough to embed. Recording needs
+`playwright` and `ffmpeg` on your machine; the page and the datasets need neither.
 
-### 2. As a GitHub Action, so your README stays current
+One thing to watch. A shallow clone only contains the commits you fetched, so sediment can only draw
+those. It checks and warns you before writing anything, but the fix is `git fetch --unshallow`
+first, and on a big repository that takes a while.
 
-Copy [`examples/sediment.yml`](examples/sediment.yml) into `.github/workflows/`. It renders on every
-push and once a week, then force-pushes the results to a `sediment` branch:
+Options worth knowing: `--out DIR` chooses where things land, `--json` writes the underlying
+datasets alongside the page, `--lanes N` changes how many bands the section is split into, and
+`--seconds N` sets how long the deposition runs in the video. `npx sediment --help` lists the rest.
+
+## Keeping it current in your README
+
+The action renders in CI and force-pushes the result to a branch, so a plain image link in your
+README shows the repository as it is now rather than as it was the day you ran the command.
 
 ```yaml
-- uses: actions/checkout@v4
-  with:
-    fetch-depth: 0 # sediment needs the whole history
-- uses: iLevyTate/sediment@main
-  with:
-    gif: 'true'
-    publish-branch: sediment
+name: sediment
+on:
+  schedule: [{ cron: '0 6 * * 1' }]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: iLevyTate/sediment@main
+        with:
+          video: 'true'
+          gif: 'true'
+          publish-branch: sediment
 ```
 
-That gives you URLs that never go stale:
+Then in your README:
 
-```md
-![history](https://raw.githubusercontent.com/OWNER/REPO/sediment/sediment.gif)
+```markdown
+![History](https://raw.githubusercontent.com/OWNER/REPO/sediment/sediment.gif)
 ```
 
-The other two templates cover the common variations — [`sediment-pr.yml`](examples/sediment-pr.yml)
-attaches a film to every pull request as a build artifact (nothing is committed), and
-[`sediment-pages.yml`](examples/sediment-pages.yml) publishes to GitHub Pages so the interactive
-version lives at a real URL you can iframe into a personal site.
+`fetch-depth: 0` is the part people miss. Without it the checkout is shallow and you get a film of
+the last twenty commits. Templates for the branch, PR-artifact and Pages variants are in
+[`examples/`](examples).
 
-Pin to a tag rather than `@main` once you care about reproducibility.
+## In the browser
 
-### 3. In the browser, with nothing installed
+The [hosted page](https://ilevytate.github.io/sediment/) takes a repository name and builds the film
+client-side, which is the fastest way to look at somebody else's project. It opens on a prebuilt
+example so there is something on screen before you type anything. Results are linkable:
+`.../sediment/#owner/repo` rebuilds that repository.
 
-**<https://ilevytate.github.io/sediment/>**
+## Why the numbers are right
 
-Type a repository name and the film is built client-side against the GitHub API — useful for
-looking at somebody else's repository without cloning it. **Download page** hands you the same
-self-contained HTML the CLI writes, and every result is linkable: `…/sediment/#owner/repo` rebuilds
-it.
+This was the part I got wrong first, so it is worth explaining. My first version accumulated `+` and
+`-` counts from `git log --numstat` and drifted about 1% over 1,400 commits, because renames lose
+their base and merge commits are invisible to that view.
 
-It checks your remaining API budget before starting and fetches only what fits, so an anonymous
-visit degrades to fewer commits rather than failing halfway. Pasting a token (kept in your browser,
-never sent anywhere but GitHub) lifts the ceiling from 60 requests an hour to 5,000.
+`git log --raw` carries the post-image blob SHA of every changed file. Sediment replays those blob
+identities rather than adding up deltas, so the tree it holds after any commit is the real tree.
+Every blob is line-counted exactly once through a batched `git cat-file --batch`, with NUL sniffing
+so binaries score zero instead of garbage.
 
-The page opens on a prebuilt example — `expressjs/express`, 6,158 commits across 17 years — which
-ships with the site as `demo.json`. It costs no API requests, so the interface is doing something
-real the moment the page loads, and it carries exact line counts because the CLI generated it.
+Merges are the remaining hole. `--raw` prints nothing for a merge commit, so content the merge
+itself introduced, a conflict-resolved lockfile for instance, would never appear. Sediment anchors on
+real `git ls-tree` snapshots, weekly plus every tag plus both endpoints, and reconciles its virtual
+filesystem against them. On a 1,459-commit repository that is 53 anchors and 303 corrections.
 
-The site is the repository root — `index.html` importing from `src/`, with a `.nojekyll` beside it
-so Pages serves the files verbatim instead of running them through Jekyll. No build step, no deploy
-workflow. `sediment web-assets` copies the same layout into a directory if you would rather host it
-somewhere else.
+I verify this rather than assert it. Against that repository the datasets reproduce the working tree
+exactly: 1,822 of 1,822 files, 531,742 of 531,742 lines, zero per-file mismatches.
 
-Regenerate the demo with:
+## What the hosted version gives up
 
-```bash
-node bin/sediment.js --repo /path/to/express --out /tmp/x --payload demo.json
-```
+The GitHub API will not hand out per-commit file lists without one request per commit, which for a
+1,459-commit repository means 1,459 requests against an anonymous budget of 60 an hour. So the
+browser build takes a different route. It reads the commit list at 100 per request, pulls the full
+tree at about 26 anchor commits, and recovers file events by diffing consecutive trees. Those events
+are real, they just belong to the window between two anchors rather than to an exact commit.
 
-## Why the local version is the accurate one
+Two consequences, and the page states both. Sizes are file bytes rather than lines, because that is
+what the tree API returns; binaries count as zero so a folder of icons cannot outrank the source
+tree. And the whole thing costs about 43 requests for 1,459 commits, which fits inside the anonymous
+limit. It asks `/rate_limit` first, that endpoint being free, then splits the budget between commit
+pages and anchors. Where a repository does not fit, it fetches fewer commits and tells you, instead
+of failing halfway through.
 
-`git log --raw` carries the post-image blob SHA of every changed file, so the replay tracks _blob
-identity_ rather than accumulating `+`/`-` deltas — the per-commit tree never drifts. Every blob is
-line-counted exactly once through a batched `git cat-file --batch`, with NUL-sniffing to score
-binaries at zero.
-
-`--raw` shows nothing for merge commits, so content introduced by a merge itself (conflict-resolved
-lockfiles, evil merges) would be invisible. Periodic `git ls-tree` anchors reconcile the virtual
-filesystem against ground truth to catch it.
-
-The result is checkable, and it checks out: on a 1,459-commit repository the datasets reproduce the
-working tree exactly — 1,822 of 1,822 files and 531,742 of 531,742 lines, with no per-file
-mismatches.
-
-The browser version cannot do this. Per-commit file lists are one API request _per commit_, so it
-takes a different route: the commit list, plus the tree at ~26 anchor commits, plus file events
-recovered by diffing consecutive trees. That is real data — those files genuinely changed in that
-window — but sizes are **bytes** rather than lines (binaries score zero), and events land at anchor
-granularity. The page says so. A 1,459-commit repository costs about 43 requests, which fits inside
-the unauthenticated limit of 60 per hour; a token raises it to 5,000.
+Run the CLI when you want the exact numbers.
 
 ## Lanes
 
-A lane is a region of the tree with its own band. They are derived from the repository, not
-configured: group by top-level directory, split any group big enough to be hiding structure, keep
-the largest handful, sweep the tail into `other`. Sizing is by lines (or non-binary bytes) so a
-folder of icons cannot outrank the source tree.
+A lane is a region of the tree that gets its own band. Sediment derives them from the repository's
+own shape instead of asking you to describe it: group by top-level directory, split anything large
+enough to be hiding structure, keep the biggest handful, sweep the tail into `other`. Sizing is by
+lines, or non-binary bytes on the web, so an assets folder cannot outrank `src`.
 
-For this project's own reference repository that yields `test, src/main, src/renderer, docs, (root),
-src/shared, scripts, test/e2e, test/components, ralph, test/unit, other` — close to what you would
-choose by hand. `--lanes N` changes the cap.
+On the repository I built this for, the derived lanes came out as `test`, `src/main`,
+`src/renderer`, `docs`, `(root)`, `src/shared`, `scripts`, `test/e2e`, `test/components`, `ralph`,
+`test/unit`, `other`, which is within one or two of the set I had hand-written earlier. Colours are
+generated from a mineral ramp rather than fixed, so any lane count works. Lanes are path prefixes,
+which means a file that existed only in 2019 and is long deleted still lands in one.
 
-Because lanes are path _prefixes_, a file that existed only in the distant past still lands in a
-lane by longest-prefix match.
+## The datasets
 
-## Options
+`--json` writes nine files next to the page.
 
-```
---repo PATH         repository to read (default: .)
---out DIR           output directory (default: .sediment)
---video             also record an mp4
---gif               also write a gif (implies --video)
---seconds N         deposition length in the video (default 30)
---fps N             frames per second (default 30)
---width N           video width (default 1920)
---height N          video height (default 1080)
---theme dark|light  video theme (default dark)
---hold N            seconds on the closing card (default 3)
---lanes N           maximum bands (default 12)
---snapshot-days N   days between tree snapshots (default 7)
---json              also write the full datasets as JSON
-```
+| File                | Shape                   | Use it for                                           |
+| ------------------- | ----------------------- | ---------------------------------------------------- |
+| `meta.json`         | object                  | Totals, date range, lane list                        |
+| `commits.json`      | array, chronological    | Commit-by-commit playback, running totals            |
+| `file-events.json`  | columnar table          | Gource-style per-file animation                      |
+| `daily.json`        | array, gap-filled daily | Growth curves, calendar heatmaps                     |
+| `snapshots.json`    | array of tree snapshots | Animated treemaps, stacked areas, racing bars        |
+| `files.json`        | array                   | File birth and death timelines, hotspot bubbles      |
+| `contributors.json` | array                   | Contributor races, per-person lane mixes             |
+| `releases.json`     | array of tags           | Milestone markers on any timeline                    |
+| `derived.json`      | object                  | Hotspot and largest top-200, punchcard, busiest days |
 
-`sediment web-assets --out _site` assembles the hosted front end.
+`daily.json` is gap-filled on purpose. Quiet days are emitted with zero activity and the previous
+day's totals carried forward, so a day-stepped animation advances at a constant rate without special
+casing weekends.
 
-## The data
+## How the pieces fit
 
-`--json` writes the datasets behind the film, if you would rather build your own thing with them:
-`commits`, a columnar `file-events` table, gap-filled `daily` rollups, per-anchor `snapshots`,
-per-file `files` lifespans, `contributors`, `releases`, and a `derived` bundle with hotspots and a
-punchcard. They are keyed by a shared commit index, so they join cleanly.
+`src/extract.js` reads local git and `src/github.js` reads the API. Both produce the same datasets.
+`buildPayload` compacts either one into a single payload and `buildHtml` inlines it into
+`src/player.html`, which is the only renderer in the project. Because `buildPayload` and `buildHtml` are pure
+and shared, the page the website hands you on **Download page** is byte-identical to the one the CLI
+writes.
 
-`buildPayload` compacts them into what the player reads; `buildHtml` inlines that into the template.
-Both are pure and shared by the CLI and the browser, so an exported page is byte-identical to a
-generated one.
+The site is the repository root: `index.html` importing from `src/`, with a `.nojekyll` beside it so
+Pages serves the files as they are. No build step and no deploy workflow.
 
-## Recording
+## Limits
 
-The recorder opens the page at `#film`, which drops the live-viewer chrome and reflows to 16:9, then
-advances the animation through `window.__strata.step(1/fps)` — a fixed slice of _video_ time per
-frame rather than wall-clock. The output does not depend on how fast the machine can screenshot, and
-since the grain simulation runs on a seeded PRNG, the same command produces the same video every
-time. Frames pipe straight into ffmpeg; nothing is staged on disk.
+The video recorder has only been run on Linux, with Node 22 and ffmpeg 6.1. Nothing in it is
+platform-specific and playwright covers the browser, but I have not tested Windows or macOS.
 
-## Notes
+A GIF of a 30-second film runs 5 to 8 MB at 760 pixels wide. That is fine in a README and heavy
+everywhere else, so the mp4 is the better artifact if you have somewhere to put it.
 
-- **The full history is required.** `actions/checkout` defaults to depth 1; use `fetch-depth: 0`.
-  The CLI warns when it sees a shallow clone, and the action unshallows for you.
-- The page is theme-aware and works with no network — the webfont is loaded off the critical path,
-  so an exported file opens fine offline.
-- Layout in the readout is fixed rather than content-sized, so nothing shifts as commits stream past.
+Repositories with tens of thousands of commits will work but the payload grows roughly linearly;
+express at 6,158 commits produces a 739 KB page. I have not tried the Linux kernel and I do not
+expect it to be pleasant.
 
-## License
+The hosted page only reads public repositories. A token raises your rate limit, it does not grant
+access to anything private, and it never leaves your browser except to GitHub.
 
 MIT.

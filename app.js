@@ -1,7 +1,7 @@
 /**
  * The hosted front end: repository name in, film out.
  *
- * All the work happens in modules shared with the CLI — `fetchHistory` gathers
+ * All the work happens in modules shared with the CLI. `fetchHistory` gathers
  * the datasets, `buildPayload` compacts them, `buildHtml` inlines them into the
  * player. The page you see in the frame is byte-identical to the one the
  * download button hands you, because it is the same string.
@@ -96,7 +96,7 @@ async function showDemo() {
     $('demoNote').hidden = false;
     status('Type any public repository above to build its history.');
   } catch {
-    /* no demo shipped — the form still works */
+    /* no demo shipped, so the form is all there is */
   }
 }
 
@@ -123,7 +123,7 @@ async function build(input, token) {
         ? Math.max(1, Math.ceil((rate.reset * 1000 - Date.now()) / 60000))
         : 0;
       status(
-        `GitHub's rate limit is spent${mins ? ` — it resets in about ${mins} min` : ''}. ` +
+        `GitHub's rate limit is spent${mins ? `. It resets in about ${mins} min` : ''}. ` +
           'Add a token to lift it to 5,000 an hour.',
         true
       );
@@ -151,9 +151,9 @@ async function build(input, token) {
     progress(1);
     status(
       truncated
-        ? `Done — the most recent ${m.commits.toLocaleString()} commits, which is what the ` +
+        ? `Done. The most recent ${m.commits.toLocaleString()} commits, which is what the ` +
             `remaining request budget covered.${token ? '' : ' A token fetches the rest.'}`
-        : `Done — ${m.commits.toLocaleString()} commits.`
+        : `Done. ${m.commits.toLocaleString()} commits.`
     );
     if (rateRemaining !== null && rateRemaining !== undefined) {
       $('rate').textContent = `${rateRemaining} API requests left this hour`;
