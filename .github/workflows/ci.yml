@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build this repository's own history
+        run: node bin/sediment.js --repo . --out .sediment --json
+
+      - name: Check the output
+        run: |
+          test -s .sediment/index.html
+          test -s .sediment/data/meta.json
+          node -e "
+            const m = require('./.sediment/data/meta.json');
+            if (!m.commits) throw new Error('no commits');
+            if (m.units !== 'lines') throw new Error('unexpected units');
+            console.log(\`ok: \${m.commits} commits, \${m.finalLoc} lines, lanes: \${m.lanes.join(', ')}\`);
+          "
+
+      - name: The GitHub source path, against fixtures rather than the network
+        run: node test/github-fixture.mjs . /tmp/web.html
+
+      - name: Assemble the Pages site
+        run: node bin/sediment.js web-assets --out _site && test -s _site/lib/player.html

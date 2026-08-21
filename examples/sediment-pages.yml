@@ -1,0 +1,48 @@
+# Publish the film to GitHub Pages, so it lives at a real URL you can link or
+# iframe into a personal site.
+#
+# Copy to .github/workflows/sediment-pages.yml, then set
+# Settings -> Pages -> Source to "GitHub Actions".
+#
+name: Sediment (Pages)
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: iLevyTate/sediment@main
+        with:
+          output: _site
+          gif: "true"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

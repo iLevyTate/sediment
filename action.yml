@@ -1,0 +1,133 @@
+name: Sediment
+description: Render this repository's history as a stratigraphic film — an interactive page, and optionally an mp4 and gif.
+author: iLevyTate
+branding:
+  icon: layers
+  color: gray-dark
+
+inputs:
+  output:
+    description: Directory to write into.
+    default: sediment
+  video:
+    description: Also record an mp4. Installs ffmpeg and a headless Chromium, so it adds a few minutes.
+    default: "false"
+  gif:
+    description: Also write a gif next to the mp4 — this is the file you can embed in a README.
+    default: "false"
+  seconds:
+    description: Length of the deposition in the video.
+    default: "30"
+  fps:
+    description: Video frame rate.
+    default: "30"
+  width:
+    description: Video width.
+    default: "1920"
+  height:
+    description: Video height.
+    default: "1080"
+  gif-width:
+    description: Gif width. Smaller keeps READMEs light.
+    default: "900"
+  theme:
+    description: dark or light.
+    default: dark
+  lanes:
+    description: Maximum bands in the section.
+    default: "12"
+  json:
+    description: Also write the full datasets as JSON.
+    default: "false"
+  publish-branch:
+    description: >
+      Force-push the output to this branch, so raw.githubusercontent.com URLs stay current and a
+      plain image link in your README keeps working. Leave empty to skip. Needs contents: write.
+    default: ""
+  token:
+    description: Token used to push publish-branch.
+    default: ${{ github.token }}
+
+outputs:
+  html:
+    description: Path to the generated page.
+    value: ${{ steps.run.outputs.html }}
+  mp4:
+    description: Path to the generated mp4, if any.
+    value: ${{ steps.run.outputs.mp4 }}
+  gif:
+    description: Path to the generated gif, if any.
+    value: ${{ steps.run.outputs.gif }}
+
+runs:
+  using: composite
+  steps:
+    - name: Ensure the full history is present
+      shell: bash
+      run: |
+        # actions/checkout defaults to depth 1; sediment needs every commit.
+        if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+          echo "Repository is shallow — fetching the rest."
+          git fetch --unshallow --quiet || git fetch --depth=2147483647 --quiet
+        fi
+        git fetch --tags --quiet || true
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+
+    - name: Install recording tools
+      if: inputs.video == 'true' || inputs.gif == 'true'
+      shell: bash
+      run: |
+        if ! command -v ffmpeg >/dev/null 2>&1; then
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+        fi
+        npm install --no-save --silent playwright@^1.49.0
+        npx playwright install --with-deps chromium
+
+    - name: Render
+      id: run
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        args=(--repo . --out "${{ inputs.output }}" --lanes "${{ inputs.lanes }}")
+        [ "${{ inputs.json }}" = "true" ] && args+=(--json)
+        if [ "${{ inputs.video }}" = "true" ] || [ "${{ inputs.gif }}" = "true" ]; then
+          args+=(--video --seconds "${{ inputs.seconds }}" --fps "${{ inputs.fps }}"
+                 --width "${{ inputs.width }}" --height "${{ inputs.height }}"
+                 --theme "${{ inputs.theme }}")
+          [ "${{ inputs.gif }}" = "true" ] && args+=(--gif)
+        fi
+        # `playwright` resolves from the workspace install above.
+        NODE_PATH="$PWD/node_modules" node "$ACTION_PATH/bin/sediment.js" "${args[@]}"
+
+        out="${{ inputs.output }}"
+        echo "html=$out/index.html" >> "$GITHUB_OUTPUT"
+        [ -f "$out/sediment.mp4" ] && echo "mp4=$out/sediment.mp4" >> "$GITHUB_OUTPUT" || true
+        [ -f "$out/sediment.gif" ] && echo "gif=$out/sediment.gif" >> "$GITHUB_OUTPUT" || true
+
+    - name: Publish to branch
+      if: inputs.publish-branch != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        set -euo pipefail
+        branch="${{ inputs.publish-branch }}"
+        tmp="$(mktemp -d)"
+        cp -r "${{ inputs.output }}/." "$tmp/"
+        cd "$tmp"
+        touch .nojekyll
+        git init -q
+        git checkout -q -b "$branch"
+        git add -A
+        git -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -qm "sediment: ${GITHUB_SHA:0:8}"
+        git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$branch"
+        echo "Published to $branch:"
+        echo "  https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${branch}/sediment.gif"

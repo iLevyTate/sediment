@@ -1,0 +1,36 @@
+# Keep a live history film for your repository.
+#
+# Copy to .github/workflows/sediment.yml. It renders on every push to the
+# default branch and once a week, force-pushes the results to a `sediment`
+# branch, and leaves you with stable URLs to link from your README:
+#
+#   ![history](https://raw.githubusercontent.com/OWNER/REPO/sediment/sediment.gif)
+#   [interactive](https://raw.githack.com/OWNER/REPO/sediment/index.html)
+#
+name: Sediment
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1" # Mondays, 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sediment
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # sediment needs the whole history
+      - uses: iLevyTate/sediment@main
+        with:
+          gif: "true"
+          publish-branch: sediment

@@ -1,0 +1,35 @@
+{
+  "name": "sediment",
+  "version": "0.1.0",
+  "description": "Turn any git repository's history into a stratigraphic film.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "sediment": "bin/sediment.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "sediment": "node bin/sediment.js",
+    "build:web": "node bin/sediment.js web-assets",
+    "demo": "node bin/sediment.js --repo . --out .sediment"
+  },
+  "optionalDependencies": {
+    "playwright": "^1.49.0"
+  },
+  "keywords": [
+    "git",
+    "history",
+    "visualization",
+    "animation",
+    "repository",
+    "gource"
+  ]
+}

@@ -1,0 +1,30 @@
+# Attach a history film to every pull request.
+#
+# Copy to .github/workflows/sediment-pr.yml. The film is uploaded as a build
+# artifact rather than committed, so nothing lands in the repository — reviewers
+# download it from the run summary.
+#
+name: Sediment (PR)
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: iLevyTate/sediment@main
+        id: sediment
+        with:
+          gif: "true"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sediment-${{ github.event.pull_request.number }}
+          path: sediment/
+          retention-days: 14
