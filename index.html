@@ -8,6 +8,41 @@
       name="description"
       content="Turn any GitHub repository's history into a stratigraphic film, in the browser."
     />
+    <meta name="color-scheme" content="light dark" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f6f78'/%3E%3Cg fill='%23fbfbfd'%3E%3Crect x='6' y='9' width='20' height='4' rx='1' opacity='.55'/%3E%3Crect x='6' y='15' width='20' height='5' rx='1' opacity='.8'/%3E%3Crect x='6' y='22' width='20' height='3' rx='1' opacity='.4'/%3E%3C/g%3E%3C/svg%3E"
+    />
+
+    <!--
+      Everything the first screen needs is asked for here, during head parsing,
+      rather than after app.js has booted and worked out what it wants. The
+      module graph is three levels deep, so without these the browser discovers
+      palette.js only on its third round trip.
+    -->
+    <link rel="modulepreload" href="./app.js" />
+    <link rel="modulepreload" href="./src/github.js" />
+    <link rel="modulepreload" href="./src/payload.js" />
+    <link rel="modulepreload" href="./src/lanes.js" />
+    <link rel="modulepreload" href="./src/palette.js" />
+    <link rel="preload" as="fetch" crossorigin href="./src/player.html" />
+    <script>
+      // A visitor arriving at #owner/name wants that repository built live, so
+      // the 740 KB demo payload would be 740 KB wasted. Ask for it only when it
+      // is going to be shown, and tell the rest of the page which way it went.
+      (function () {
+        var live = location.hash.replace(/^#/, '').trim().length > 0;
+        document.documentElement.dataset.entry = live ? 'live' : 'demo';
+        if (live) return;
+        var l = document.createElement('link');
+        l.rel = 'preload';
+        l.as = 'fetch';
+        l.crossOrigin = 'anonymous';
+        l.href = './demo.json';
+        document.head.appendChild(l);
+      })();
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -16,6 +51,12 @@
       onload="this.media = 'all'"
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500&display=swap"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500&display=swap"
+      />
+    </noscript>
     <style>
       :root {
         --ground: #e6e8ee;
@@ -30,6 +71,17 @@
         --sheen: rgba(255, 255, 255, 0.9);
         --panel-top: rgba(255, 255, 255, 0.55);
         --shadow: 0 1px 2px rgba(20, 23, 31, 0.07), 0 12px 32px -10px rgba(20, 23, 31, 0.16);
+        /* The lane ramp, matched to src/palette.js, so the placeholder strata
+           are the same minerals the film itself deposits. */
+        --l0: #7ea465;
+        --l1: #a14a30;
+        --l2: #3e7ca8;
+        --l3: #b47f22;
+        --l4: #32939a;
+        --l5: #666f7f;
+        --l6: #719353;
+        --l7: #787836;
+        --skeleton-alpha: 0.5;
       }
       @media (prefers-color-scheme: dark) {
         :root:not([data-theme='light']) {
@@ -45,6 +97,15 @@
           --sheen: rgba(255, 255, 255, 0.06);
           --panel-top: rgba(255, 255, 255, 0.028);
           --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 14px 40px -10px rgba(0, 0, 0, 0.6);
+          --l0: #a1bf8d;
+          --l1: #cb6748;
+          --l2: #609cc7;
+          --l3: #dda23c;
+          --l4: #48bec7;
+          --l5: #868fa2;
+          --l6: #92b474;
+          --l7: #a8a848;
+          --skeleton-alpha: 0.38;
         }
       }
       * {
@@ -62,7 +123,7 @@
       .wrap {
         max-width: 1240px;
         margin: 0 auto;
-        padding: clamp(20px, 4vw, 44px) clamp(16px, 4vw, 32px) 64px;
+        padding: clamp(18px, 3vw, 34px) clamp(16px, 4vw, 32px) 64px;
         display: flex;
         flex-direction: column;
         gap: 22px;
@@ -73,7 +134,7 @@
         gap: 6px 20px;
         align-items: baseline;
         border-bottom: 1px solid var(--line);
-        padding-bottom: 16px;
+        padding-bottom: 14px;
       }
       h1 {
         font-family: 'IBM Plex Sans Condensed', ui-sans-serif, sans-serif;
@@ -100,7 +161,7 @@
           var(--shadow);
       }
       form {
-        padding: 18px;
+        padding: 18px 18px 14px;
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
@@ -113,7 +174,8 @@
         flex: 1 1 260px;
         min-width: 0;
       }
-      label {
+      label,
+      .ex-label {
         font-family: 'IBM Plex Mono', ui-monospace, monospace;
         font-size: 10px;
         letter-spacing: 0.1em;
@@ -172,23 +234,65 @@
         outline: 2px solid var(--accent);
         outline-offset: 2px;
       }
+
+      /* The token is for the minority who hit the rate limit. Asking every
+         first-time visitor for a credential before they have seen anything is
+         the wrong order, so it folds away until it is wanted. */
+      .token {
+        padding: 0 18px 4px;
+      }
+      .token summary {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        width: fit-content;
+        font-family: 'IBM Plex Mono', ui-monospace, monospace;
+        font-size: 11px;
+        color: var(--muted);
+        list-style: none;
+        border-radius: 3px;
+      }
+      .token summary::-webkit-details-marker {
+        display: none;
+      }
+      .token summary::before {
+        content: '+';
+        font-size: 13px;
+        line-height: 1;
+        color: var(--accent);
+      }
+      .token[open] summary::before {
+        content: '–';
+      }
+      .token summary:hover {
+        color: var(--accent);
+      }
+      .token summary:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+      }
+      .token .field {
+        margin-top: 10px;
+        max-width: 420px;
+      }
+      .token .hint {
+        margin: 6px 0 0;
+        font-size: 12px;
+        color: var(--muted);
+        max-width: 52ch;
+      }
+
       .examples {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
         align-items: center;
-        padding: 0 18px 12px;
+        padding: 8px 18px 12px;
       }
       .examples button {
         padding: 5px 11px;
         font-size: 12px;
-      }
-      .ex-label {
-        font-family: 'IBM Plex Mono', ui-monospace, monospace;
-        font-size: 10px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--muted);
       }
 
       .status {
@@ -234,26 +338,149 @@
       }
 
       #stage {
-        display: none;
+        display: flex;
         flex-direction: column;
         gap: 12px;
       }
-      #stage.on {
-        display: flex;
+
+      /* The film's box is laid out at its final size before the payload is
+         even requested. Nothing below it moves when the frame arrives. */
+      .film {
+        position: relative;
+        height: min(80vh, 900px);
+        min-height: 420px;
+        border-radius: 6px;
+        overflow: hidden;
+        background: var(--surface);
+        border: 1px solid var(--line);
       }
       iframe {
         width: 100%;
-        height: min(92vh, 1080px);
+        height: 100%;
         border: 0;
-        border-radius: 6px;
         display: block;
-        background: var(--ground);
+        background: transparent;
       }
+
+      /* Placeholder strata: the shape of the answer, drawn while the answer
+         downloads. Deliberately abstract — soft, unlabelled bands — so it
+         cannot be mistaken for real data. */
+      .sk {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: clamp(18px, 3vw, 34px);
+        gap: 14px;
+        pointer-events: none;
+        /* Opaque, so it hides the frame behind it and the reveal is one clean
+           dissolve rather than two layers of type crossing through each other. */
+        background: var(--surface);
+        transition:
+          opacity 0.45s ease,
+          visibility 0.45s;
+      }
+      .film.ready .sk {
+        opacity: 0;
+        visibility: hidden;
+      }
+      .sk-head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        align-items: baseline;
+        font-family: 'IBM Plex Mono', ui-monospace, monospace;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .sk-head b {
+        font-family: 'IBM Plex Sans Condensed', ui-sans-serif, sans-serif;
+        font-size: clamp(17px, 2.2vw, 22px);
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        text-transform: none;
+        color: var(--ink-2);
+      }
+      .sk-strata {
+        flex: 1;
+        width: 100%;
+        min-height: 0;
+        display: block;
+        border-bottom: 1px solid var(--line);
+        opacity: var(--skeleton-alpha);
+        /* The section is laid down the way the film lays it down: left to
+           right, oldest commit first. One pass, then it holds. */
+        animation: deposit 1.9s cubic-bezier(0.24, 0.68, 0.32, 1) both;
+      }
+      @keyframes deposit {
+        from {
+          clip-path: inset(0 100% 0 0);
+        }
+        to {
+          clip-path: inset(0 0 0 0);
+        }
+      }
+      /* Once deposited, a slow pass of light says the page is still working:
+         enough motion to read as alive, not enough to pull the eye off the
+         form above it. */
+      .sk-sweep {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          100deg,
+          transparent 38%,
+          color-mix(in srgb, var(--sheen) 70%, transparent) 50%,
+          transparent 62%
+        );
+        animation: sweep 2.6s ease-in-out 1.9s infinite;
+      }
+      @keyframes sweep {
+        from {
+          transform: translateX(-65%);
+        }
+        to {
+          transform: translateX(65%);
+        }
+      }
+      /* Nothing is on its way any more, so the motion would be a lie. */
+      .film.failed .sk-sweep {
+        display: none;
+      }
+      .film.failed .sk-strata {
+        opacity: calc(var(--skeleton-alpha) * 0.4);
+      }
+      .sk-axis {
+        display: flex;
+        justify-content: space-between;
+        font-family: 'IBM Plex Mono', ui-monospace, monospace;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .sk-strata {
+          animation: none;
+        }
+        .sk-sweep {
+          display: none;
+        }
+        .sk {
+          transition: none;
+        }
+      }
+
       .actions {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
         align-items: center;
+        min-height: 38px;
+      }
+      .actions[hidden] {
+        display: none;
       }
       .actions .note {
         font-family: 'IBM Plex Mono', ui-monospace, monospace;
@@ -309,6 +536,50 @@
       a {
         color: var(--accent);
       }
+
+      /* On a phone the header, a two-field form and a paragraph of preamble
+         would push the film a screen and a half down. Tighten all three. */
+      @media (max-width: 720px) {
+        .wrap {
+          gap: 16px;
+        }
+        header {
+          padding-bottom: 12px;
+        }
+        .tagline {
+          font-size: 14px;
+        }
+        form {
+          padding: 14px 14px 10px;
+          gap: 10px;
+        }
+        form .field {
+          flex: 1 1 100%;
+        }
+        form button.primary {
+          flex: 1 1 100%;
+        }
+        .token,
+        .examples,
+        .status {
+          padding-left: 14px;
+          padding-right: 14px;
+        }
+        .examples {
+          gap: 6px;
+        }
+        .film {
+          height: min(78vh, 720px);
+          min-height: 380px;
+        }
+      }
+      /* The tagline restates what the film shows. Once the film is on screen
+         it is redundant on a small viewport, where every line costs. */
+      @media (max-width: 560px) {
+        .tagline {
+          display: none;
+        }
+      }
     </style>
   </head>
   <body>
@@ -330,22 +601,34 @@
               name="repo"
               placeholder="owner/name"
               autocomplete="off"
+              autocapitalize="off"
               spellcheck="false"
+              enterkeyhint="go"
               required
-            />
-          </div>
-          <div class="field">
-            <label for="token">GitHub token, optional. Raises the rate limit</label>
-            <input
-              id="token"
-              name="token"
-              type="password"
-              placeholder="ghp_… (kept in this browser)"
-              autocomplete="off"
             />
           </div>
           <button class="primary" id="go" type="submit">Build</button>
         </form>
+
+        <details class="token" id="tokenBox">
+          <summary>GitHub token, optional</summary>
+          <div class="field">
+            <label for="token">Personal access token</label>
+            <input
+              id="token"
+              name="token"
+              form="form"
+              type="password"
+              placeholder="ghp_…"
+              autocomplete="off"
+            />
+          </div>
+          <p class="hint">
+            Raises GitHub's limit from 60 requests an hour to 5,000. Kept in this browser and sent
+            only to github.com.
+          </p>
+        </details>
+
         <div class="examples">
           <span class="ex-label">Try</span>
           <button type="button" data-example="sindresorhus/slugify">sindresorhus/slugify</button>
@@ -354,20 +637,80 @@
           <button type="button" data-example="iLevyTate/sediment">iLevyTate/sediment</button>
         </div>
         <div class="status">
-          <span id="msg">Public repositories only. No token needed for a first look.</span>
+          <span id="msg" role="status" aria-live="polite"
+            >Public repositories only. No token needed for a first look.</span
+          >
           <span class="bar"><i id="bar"></i></span>
           <span id="rate"></span>
         </div>
       </div>
 
       <div id="stage">
+        <div class="film" id="film">
+          <iframe id="frame" title="Repository history"></iframe>
+          <!--
+            Present in the markup rather than injected, so it is painted with
+            the first frame instead of after the module graph resolves. Heights
+            are a plausible section, not this repository's numbers.
+          -->
+          <div class="sk" id="sk" aria-hidden="true">
+            <div class="sk-head">
+              <b id="skTitle">expressjs/express</b>
+              <span id="skSub">6,158 commits · 17 years · settling…</span>
+            </div>
+            <!--
+              A stratigraphic section, drawn the way the film draws one: bands
+              that thicken left to right as the tree grows. Static markup, so it
+              is on screen with the first paint. The shape is generic — no
+              repository's real numbers — and it is wiped away, never read.
+            -->
+            <svg
+              class="sk-strata"
+              viewBox="0 22 200 78"
+              preserveAspectRatio="none"
+              focusable="false"
+            >
+              <path
+                d="M0 100L9.524 99.74L19.05 99.01L28.57 97.91L38.1 96.48L47.62 94.78L57.14 92.96L66.67 91.2L76.19 89.57L85.71 87.88L95.24 85.93L104.8 83.78L114.3 81.76L123.8 80.24L133.3 79.29L142.9 78.71L152.4 78.32L161.9 77.93L171.4 77.84L181 78.27L190.5 79.06L200 79.74L200 100L190.5 100L181 100L171.4 100L161.9 100L152.4 100L142.9 100L133.3 100L123.8 100L114.3 100L104.8 100L95.24 100L85.71 100L76.19 100L66.67 100L57.14 100L47.62 100L38.1 100L28.57 100L19.05 100L9.524 100L0 100Z"
+                fill="var(--l0)"
+              />
+              <path
+                d="M0 100L9.524 99.74L19.05 98.88L28.57 97.48L38.1 95.64L47.62 93.44L57.14 91.05L66.67 88.6L76.19 86.14L85.71 83.58L95.24 80.83L104.8 77.97L114.3 75.3L123.8 73.13L133.3 71.63L142.9 70.79L152.4 70.56L161.9 70.52L171.4 70.71L181 71.21L190.5 71.9L200 72.48L200 79.74L190.5 79.06L181 78.27L171.4 77.84L161.9 77.93L152.4 78.32L142.9 78.71L133.3 79.29L123.8 80.24L114.3 81.76L104.8 83.78L95.24 85.93L85.71 87.88L76.19 89.57L66.67 91.2L57.14 92.96L47.62 94.78L38.1 96.48L28.57 97.91L19.05 99.01L9.524 99.74L0 100Z"
+                fill="var(--l1)"
+              />
+              <path
+                d="M0 100L9.524 99.74L19.05 98.88L28.57 97.33L38.1 94.97L47.62 91.93L57.14 88.38L66.67 84.58L76.19 80.66L85.71 76.57L95.24 72.17L104.8 67.64L114.3 63.54L123.8 60.47L133.3 58.59L142.9 57.65L152.4 57.34L161.9 57.15L171.4 57.12L181 57.57L190.5 58.31L200 58.81L200 72.48L190.5 71.9L181 71.21L171.4 70.71L161.9 70.52L152.4 70.56L142.9 70.79L133.3 71.63L123.8 73.13L114.3 75.3L104.8 77.97L95.24 80.83L85.71 83.58L76.19 86.14L66.67 88.6L57.14 91.05L47.62 93.44L38.1 95.64L28.57 97.48L19.05 98.88L9.524 99.74L0 100Z"
+                fill="var(--l2)"
+              />
+              <path
+                d="M0 100L9.524 99.74L19.05 98.88L28.57 97.33L38.1 94.94L47.62 91.69L57.14 87.82L66.67 83.6L76.19 79.2L85.71 74.5L95.24 69.4L104.8 64.17L114.3 59.43L123.8 55.82L133.3 53.46L142.9 52.08L152.4 51.5L161.9 51.32L171.4 51.48L181 52.18L190.5 53.09L200 53.61L200 58.81L190.5 58.31L181 57.57L171.4 57.12L161.9 57.15L152.4 57.34L142.9 57.65L133.3 58.59L123.8 60.47L114.3 63.54L104.8 67.64L95.24 72.17L85.71 76.57L76.19 80.66L66.67 84.58L57.14 88.38L47.62 91.93L38.1 94.97L28.57 97.33L19.05 98.88L9.524 99.74L0 100Z"
+                fill="var(--l3)"
+              />
+              <path
+                d="M0 100L9.524 99.74L19.05 98.88L28.57 97.33L38.1 94.94L47.62 91.69L57.14 87.62L66.67 82.85L76.19 77.58L85.71 71.74L95.24 65.36L104.8 58.89L114.3 53.12L123.8 48.64L133.3 45.44L142.9 43.22L152.4 41.99L161.9 41.57L171.4 41.77L181 42.44L190.5 43.13L200 43.26L200 53.61L190.5 53.09L181 52.18L171.4 51.48L161.9 51.32L152.4 51.5L142.9 52.08L133.3 53.46L123.8 55.82L114.3 59.43L104.8 64.17L95.24 69.4L85.71 74.5L76.19 79.2L66.67 83.6L57.14 87.82L47.62 91.69L38.1 94.94L28.57 97.33L19.05 98.88L9.524 99.74L0 100Z"
+                fill="var(--l4)"
+              />
+              <path
+                d="M0 100L9.524 99.74L19.05 98.88L28.57 97.33L38.1 94.94L47.62 91.69L57.14 87.62L66.67 82.85L76.19 77.58L85.71 71.61L95.24 64.91L104.8 58L114.3 51.71L123.8 46.64L133.3 42.81L142.9 40.04L152.4 38.4L161.9 37.73L171.4 37.78L181 38.28L190.5 38.82L200 38.93L200 43.26L190.5 43.13L181 42.44L171.4 41.77L161.9 41.57L152.4 41.99L142.9 43.22L133.3 45.44L123.8 48.64L114.3 53.12L104.8 58.89L95.24 65.36L85.71 71.74L76.19 77.58L66.67 82.85L57.14 87.62L47.62 91.69L38.1 94.94L28.57 97.33L19.05 98.88L9.524 99.74L0 100Z"
+                fill="var(--l5)"
+              />
+              <path
+                d="M0 100L9.524 99.74L19.05 98.88L28.57 97.33L38.1 94.94L47.62 91.69L57.14 87.62L66.67 82.85L76.19 77.58L85.71 71.61L95.24 64.91L104.8 58L114.3 51.27L123.8 45.12L133.3 39.9L142.9 35.74L152.4 32.92L161.9 31.31L171.4 30.74L181 31.06L190.5 31.54L200 31.67L200 38.93L190.5 38.82L181 38.28L171.4 37.78L161.9 37.73L152.4 38.4L142.9 40.04L133.3 42.81L123.8 46.64L114.3 51.71L104.8 58L95.24 64.91L85.71 71.61L76.19 77.58L66.67 82.85L57.14 87.62L47.62 91.69L38.1 94.94L28.57 97.33L19.05 98.88L9.524 99.74L0 100Z"
+                fill="var(--l6)"
+              />
+              <path
+                d="M0 100L9.524 99.74L19.05 98.88L28.57 97.33L38.1 94.94L47.62 91.69L57.14 87.62L66.67 82.85L76.19 77.58L85.71 71.61L95.24 64.91L104.8 58L114.3 51.27L123.8 45.12L133.3 39.9L142.9 35.7L152.4 32.24L161.9 29.48L171.4 27.72L181 27.4L190.5 27.94L200 28.19L200 31.67L190.5 31.54L181 31.06L171.4 30.74L161.9 31.31L152.4 32.92L142.9 35.74L133.3 39.9L123.8 45.12L114.3 51.27L104.8 58L95.24 64.91L85.71 71.61L76.19 77.58L66.67 82.85L57.14 87.62L47.62 91.69L38.1 94.94L28.57 97.33L19.05 98.88L9.524 99.74L0 100Z"
+                fill="var(--l7)"
+              />
+            </svg>
+            <div class="sk-axis"><span>oldest commit</span><span>today</span></div>
+          </div>
+        </div>
         <p class="demo-note" id="demoNote" hidden>
-          A prebuilt example: <strong>expressjs/express</strong>, 6,158 commits over 17 years, The
-          CLI generated it, so every line is counted exactly. Type any repository above to build one
-          live.
+          A prebuilt example. The CLI generated it from a clone, so every line is counted exactly —
+          a live build measures file sizes instead. Type any repository above to build one.
         </p>
-        <iframe id="frame" title="Repository history"></iframe>
-        <div class="actions">
+        <div class="actions" id="actions" hidden>
           <a id="dlHtml" download><button type="button">Download page</button></a>
           <a id="dlJson" download><button type="button">Download data</button></a>
           <button type="button" id="copyLink">Copy link</button>
