@@ -9,6 +9,8 @@
       content="Turn any GitHub repository's history into a stratigraphic film, in the browser."
     />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#e6e8ee" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#07080b" media="(prefers-color-scheme: dark)" />
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f6f78'/%3E%3Cg fill='%23fbfbfd'%3E%3Crect x='6' y='9' width='20' height='4' rx='1' opacity='.55'/%3E%3Crect x='6' y='15' width='20' height='5' rx='1' opacity='.8'/%3E%3Crect x='6' y='22' width='20' height='3' rx='1' opacity='.4'/%3E%3C/g%3E%3C/svg%3E"
@@ -82,6 +84,8 @@
         --l6: #719353;
         --l7: #787836;
         --skeleton-alpha: 0.5;
+        --ease: cubic-bezier(0.22, 0.9, 0.3, 1);
+        --focus-ring: 0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent);
       }
       @media (prefers-color-scheme: dark) {
         :root:not([data-theme='light']) {
@@ -111,9 +115,31 @@
       * {
         box-sizing: border-box;
       }
+      html {
+        -webkit-tap-highlight-color: transparent;
+      }
+      /* Chrome 131+ lets height: auto interpolate, which is what animates the
+         token disclosure open. Everywhere else the property is ignored and the
+         disclosure just snaps, as details always has. */
+      html {
+        interpolate-size: allow-keywords;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        html {
+          scroll-behavior: smooth;
+        }
+      }
       body {
         margin: 0;
         background: var(--ground);
+        /* A faint pool of accent light behind the header gives the flat ground
+           some depth without an image. It reads in both themes. */
+        background-image: radial-gradient(
+          120% 44em at 50% -18em,
+          color-mix(in srgb, var(--accent) 7%, transparent),
+          transparent 72%
+        );
+        background-repeat: no-repeat;
         color: var(--ink);
         font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
         font-size: 15px;
@@ -123,18 +149,90 @@
       .wrap {
         max-width: 1240px;
         margin: 0 auto;
-        padding: clamp(18px, 3vw, 34px) clamp(16px, 4vw, 32px) 64px;
+        padding: clamp(18px, 3vw, 34px) max(clamp(16px, 4vw, 32px), env(safe-area-inset-right))
+          calc(64px + env(safe-area-inset-bottom))
+          max(clamp(16px, 4vw, 32px), env(safe-area-inset-left));
         display: flex;
         flex-direction: column;
         gap: 22px;
+      }
+      /* The page assembles the way the film does: each section settles into
+         place, top to bottom, in about half a second. One pass on arrival.
+         The header and the form move without fading — a fade from zero would
+         hold the first contentful paint hostage to the animation, and those
+         two are the first paint. */
+      @media (prefers-reduced-motion: no-preference) {
+        .wrap > * {
+          animation: rise 0.55s var(--ease) backwards;
+        }
+        .wrap > :nth-child(1),
+        .wrap > :nth-child(2) {
+          animation-name: settle-solid;
+        }
+        .wrap > :nth-child(2) {
+          animation-delay: 0.06s;
+        }
+        .wrap > :nth-child(3) {
+          animation-delay: 0.12s;
+        }
+        .wrap > :nth-child(4) {
+          animation-delay: 0.18s;
+        }
+        .wrap > :nth-child(5) {
+          animation-delay: 0.24s;
+        }
+      }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          translate: 0 14px;
+        }
+      }
+      @keyframes settle-solid {
+        from {
+          translate: 0 10px;
+        }
       }
       header {
         display: flex;
         flex-wrap: wrap;
         gap: 6px 20px;
         align-items: baseline;
-        border-bottom: 1px solid var(--line);
-        padding-bottom: 14px;
+        position: relative;
+        padding-bottom: 17px;
+      }
+      /* The rule under the header is a section in miniature: bands of lane
+         colour laid left to right, drawn in once on arrival. */
+      header::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 3px;
+        border-radius: 2px;
+        background: linear-gradient(
+          90deg,
+          var(--l0) 0 26%,
+          var(--l2) 26% 44%,
+          var(--l4) 44% 58%,
+          var(--l3) 58% 70%,
+          var(--l1) 70% 82%,
+          var(--l6) 82% 91%,
+          var(--l5) 91% 100%
+        );
+        opacity: 0.75;
+        transform-origin: left;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        header::after {
+          animation: draw 1.1s var(--ease) 0.1s backwards;
+        }
+      }
+      @keyframes draw {
+        from {
+          transform: scaleX(0);
+        }
       }
       h1 {
         font-family: 'IBM Plex Sans Condensed', ui-sans-serif, sans-serif;
@@ -146,11 +244,20 @@
       h1 em {
         font-style: normal;
         color: var(--accent);
+        background: linear-gradient(
+          105deg,
+          var(--accent) 30%,
+          color-mix(in srgb, var(--accent) 55%, var(--l0))
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
       }
       .tagline {
         margin: 0;
         color: var(--ink-2);
         max-width: 60ch;
+        text-wrap: pretty;
       }
       .panel {
         background: linear-gradient(180deg, var(--panel-top), rgba(0, 0, 0, 0) 46%), var(--surface);
@@ -192,10 +299,19 @@
         border-radius: 4px;
         padding: 10px 12px;
         width: 100%;
+        transition:
+          border-color 0.18s var(--ease),
+          background-color 0.18s var(--ease),
+          box-shadow 0.18s var(--ease);
+      }
+      input:hover {
+        border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
       }
       input:focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: 1px;
+        outline: none;
+        border-color: var(--accent);
+        background: var(--surface);
+        box-shadow: var(--focus-ring);
       }
       button {
         font: inherit;
@@ -208,27 +324,55 @@
         border-radius: 4px;
         padding: 10px 18px;
         cursor: pointer;
+        touch-action: manipulation;
         transition:
           border-color 0.15s ease,
-          color 0.15s ease;
+          color 0.15s ease,
+          box-shadow 0.18s var(--ease),
+          transform 0.15s var(--ease);
       }
       button:hover:not(:disabled) {
         border-color: var(--accent);
         color: var(--accent);
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px -5px color-mix(in srgb, var(--accent) 45%, transparent);
+      }
+      button:active:not(:disabled) {
+        transform: translateY(0) scale(0.98);
+        transition-duration: 0.05s;
       }
       button:disabled {
         opacity: 0.5;
         cursor: default;
       }
       button.primary {
-        background: var(--accent);
+        background: linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--sheen) 26%, transparent),
+            transparent 55%
+          )
+          var(--accent);
         border-color: var(--accent);
         color: var(--surface);
         font-weight: 500;
+        box-shadow:
+          inset 0 1px 0 color-mix(in srgb, var(--sheen) 45%, transparent),
+          0 1px 2px rgba(20, 23, 31, 0.12),
+          0 6px 18px -8px color-mix(in srgb, var(--accent) 65%, transparent);
       }
       button.primary:hover:not(:disabled) {
         color: var(--surface);
-        filter: brightness(1.1);
+        filter: brightness(1.08);
+        box-shadow:
+          inset 0 1px 0 color-mix(in srgb, var(--sheen) 45%, transparent),
+          0 2px 4px rgba(20, 23, 31, 0.12),
+          0 9px 22px -8px color-mix(in srgb, var(--accent) 75%, transparent);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        button:hover:not(:disabled),
+        button:active:not(:disabled) {
+          transform: none;
+        }
       }
       button:focus-visible {
         outline: 2px solid var(--accent);
@@ -271,6 +415,26 @@
       .token summary:focus-visible {
         outline: 2px solid var(--accent);
         outline-offset: 3px;
+      }
+      /* With interpolate-size (further up) the disclosure eases open instead
+         of snapping. Browsers without ::details-content ignore all of this. */
+      .token::details-content {
+        opacity: 0;
+        block-size: 0;
+        overflow-y: clip;
+        transition:
+          content-visibility 0.3s allow-discrete,
+          opacity 0.3s var(--ease),
+          block-size 0.3s var(--ease);
+      }
+      .token[open]::details-content {
+        opacity: 1;
+        block-size: auto;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .token::details-content {
+          transition: none;
+        }
       }
       .token .field {
         margin-top: 10px;
@@ -320,8 +484,27 @@
         display: block;
         height: 100%;
         width: 0;
-        background: var(--accent);
+        /* The fill carries a slow current while work is under way. The
+           animation runs on background-position only, so it costs nothing
+           while the width is zero. */
+        background: linear-gradient(
+          90deg,
+          var(--accent),
+          color-mix(in srgb, var(--accent) 55%, var(--l0)),
+          var(--accent)
+        );
+        background-size: 200% 100%;
         transition: width 0.2s ease;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .bar i {
+          animation: flow 1.6s linear infinite;
+        }
+      }
+      @keyframes flow {
+        to {
+          background-position: -200% 0;
+        }
       }
       .demo-note {
         margin: 0;
@@ -341,6 +524,7 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
+        scroll-margin-top: 12px;
       }
 
       /* The film's box is laid out at its final size before the payload is
@@ -349,10 +533,11 @@
         position: relative;
         height: min(80vh, 900px);
         min-height: 420px;
-        border-radius: 6px;
+        border-radius: 8px;
         overflow: hidden;
         background: var(--surface);
         border: 1px solid var(--line);
+        box-shadow: var(--shadow);
       }
       iframe {
         width: 100%;
@@ -378,11 +563,15 @@
            dissolve rather than two layers of type crossing through each other. */
         background: var(--surface);
         transition:
-          opacity 0.45s ease,
-          visibility 0.45s;
+          opacity 0.5s var(--ease),
+          transform 0.5s var(--ease),
+          visibility 0.5s;
       }
+      /* The dissolve carries a breath of scale, so the placeholder recedes
+         into the film rather than switching off. */
       .film.ready .sk {
         opacity: 0;
+        transform: scale(1.015);
         visibility: hidden;
       }
       .sk-head {
@@ -470,6 +659,9 @@
         .sk {
           transition: none;
         }
+        .film.ready .sk {
+          transform: none;
+        }
       }
 
       .actions {
@@ -497,6 +689,53 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
+        position: relative;
+        transition:
+          transform 0.25s var(--ease),
+          border-color 0.25s var(--ease),
+          box-shadow 0.25s var(--ease);
+      }
+      /* A strata-coloured lip along the top edge, surfaced on hover. */
+      .card::before {
+        content: '';
+        position: absolute;
+        inset: -1px -1px auto;
+        height: 2px;
+        border-radius: 6px 6px 0 0;
+        background: linear-gradient(90deg, var(--accent), var(--l0));
+        opacity: 0;
+        transition: opacity 0.25s var(--ease);
+      }
+      @media (hover: hover) {
+        .card:hover {
+          transform: translateY(-3px);
+          border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+        }
+        .card:hover::before {
+          opacity: 1;
+        }
+      }
+      /* Where scroll-driven animations exist, each card surfaces as it enters
+         the viewport. `translate` rather than `transform`, so the hover lift
+         above still composes with it. */
+      @supports (animation-timeline: view()) {
+        @media (prefers-reduced-motion: no-preference) {
+          .cards .card {
+            animation: surface linear both;
+            animation-timeline: view();
+            animation-range: entry 5% entry 55%;
+          }
+        }
+      }
+      @keyframes surface {
+        from {
+          opacity: 0;
+          translate: 0 22px;
+        }
+        to {
+          opacity: 1;
+          translate: 0 0;
+        }
       }
       .card h2 {
         font-family: 'IBM Plex Sans Condensed', ui-sans-serif, sans-serif;
@@ -507,6 +746,7 @@
         margin: 0;
         color: var(--ink-2);
         font-size: 13.5px;
+        text-wrap: pretty;
       }
       code,
       pre {
@@ -544,10 +784,23 @@
           gap: 16px;
         }
         header {
-          padding-bottom: 12px;
+          padding-bottom: 14px;
         }
         .tagline {
           font-size: 14px;
+        }
+        /* Below 16px, iOS zooms the whole page every time an input is
+           focused. The label scale stays; the fields grow to meet the OS. */
+        input {
+          font-size: 16px;
+          padding: 12px 14px;
+        }
+        button {
+          padding: 12px 18px;
+        }
+        .examples button {
+          padding: 9px 13px;
+          font-size: 12.5px;
         }
         form {
           padding: 14px 14px 10px;
