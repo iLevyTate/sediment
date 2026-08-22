@@ -166,6 +166,12 @@ writes.
 The site is the repository root: `index.html` importing from `src/`, with a `.nojekyll` beside it so
 Pages serves the files as they are. No build step and no deploy workflow.
 
+The demo payload is the largest thing the first screen waits for, so the page is laid out at its
+final size before it is asked for: the film's box holds a drawn stratigraphic section from the first
+paint, and dissolves into the real film once the frame has parsed. Every request that first screen
+needs is declared in the head, and a visitor arriving at `#owner/name` never asks for the demo at
+all.
+
 ## Limits
 
 The video recorder has only been run on Linux, with Node 22 and ffmpeg 6.1. Nothing in it is
