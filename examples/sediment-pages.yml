@@ -5,7 +5,7 @@
 #
 # One manual step first: Settings -> Pages -> Source -> "GitHub Actions". The
 # workflow token can create Pages *deployments* but is not allowed to change
-# that setting, so it cannot do this for you — a run against a repository still
+# that setting, so it cannot do this for you. A run against a repository still
 # set to "Deploy from a branch" fails with a 404 from deploy-pages.
 #
 name: Sediment (Pages)

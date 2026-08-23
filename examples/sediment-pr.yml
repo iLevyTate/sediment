@@ -1,7 +1,7 @@
 # Attach a history film to every pull request.
 #
 # Copy to .github/workflows/sediment-pr.yml. The film is uploaded as a build
-# artifact rather than committed, so nothing lands in the repository — reviewers
+# artifact rather than committed, so nothing lands in the repository. Reviewers
 # download it from the run summary.
 #
 name: Sediment (PR)
