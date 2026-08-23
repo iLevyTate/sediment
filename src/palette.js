@@ -2,8 +2,8 @@
  * Lane colours.
  *
  * A repository can produce any number of lanes, so the palette is generated
- * rather than hand-picked. The ramp is a set of mineral hues — sage, rust,
- * ochre, slate, verdigris — walked in an order that keeps adjacent lanes
+ * rather than hand-picked. The ramp is a set of mineral hues (sage, rust,
+ * ochre, slate, verdigris) walked in an order that keeps adjacent lanes
  * distinguishable; past the end of the ramp it cycles with a lightness shift so
  * a 30-lane repository still reads.
  *

@@ -1,4 +1,14 @@
+<!doctype html>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" content="#e6e8ee" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#07080b" media="(prefers-color-scheme: dark)" />
 <title>Sediment</title>
+<link
+  rel="icon"
+  href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f6f78'/%3E%3Cg fill='%23fbfbfd'%3E%3Crect x='6' y='9' width='20' height='4' rx='1' opacity='.55'/%3E%3Crect x='6' y='15' width='20' height='5' rx='1' opacity='.8'/%3E%3Crect x='6' y='22' width='20' height='3' rx='1' opacity='.4'/%3E%3C/g%3E%3C/svg%3E"
+/>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link
@@ -71,6 +81,15 @@
 
   * {
     box-sizing: border-box;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scrollbar-color: color-mix(in srgb, var(--muted) 55%, transparent) transparent;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 26%, transparent);
   }
 
   body {
@@ -218,15 +237,25 @@
     border-radius: 3px;
     padding: 7px 13px;
     cursor: pointer;
+    touch-action: manipulation;
     transition:
       background 0.15s ease,
       border-color 0.15s ease,
-      color 0.15s ease;
+      color 0.15s ease,
+      box-shadow 0.18s ease,
+      transform 0.15s ease;
   }
 
   button:hover {
     border-color: var(--accent);
     color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px -5px color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+
+  button:active {
+    transform: translateY(0) scale(0.98);
+    transition-duration: 0.05s;
   }
 
   button:focus-visible {
@@ -241,8 +270,45 @@
   }
 
   .transport .primary {
-    min-width: 92px;
+    min-width: 96px;
     font-weight: 600;
+  }
+
+  .transport .primary:not([aria-pressed]) {
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--sheen) 26%, transparent),
+        transparent 55%
+      )
+      var(--accent);
+    border-color: var(--accent);
+    color: var(--surface);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--sheen) 45%, transparent),
+      0 1px 2px rgba(20, 23, 31, 0.12),
+      0 6px 18px -8px color-mix(in srgb, var(--accent) 65%, transparent);
+  }
+
+  .transport .primary:not([aria-pressed]):hover {
+    color: var(--surface);
+    filter: brightness(1.08);
+  }
+
+  /* Fingers need more button than pointers do. */
+  @media (pointer: coarse) {
+    button {
+      padding: 11px 15px;
+    }
+    .speeds button {
+      padding: 11px 12px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    button:hover,
+    button:active {
+      transform: none;
+    }
   }
 
   .speeds {
@@ -434,6 +500,14 @@
     align-items: center;
     gap: 8px;
     height: 26px;
+    padding-inline: 5px;
+    margin-inline: -5px;
+    border-radius: 3px;
+    transition: background-color 0.15s ease;
+  }
+
+  .legend-row:hover {
+    background: var(--surface-2);
   }
 
   .swatch {
@@ -637,8 +711,8 @@
       </div>
 
       <div class="panel transport">
-        <button class="primary" id="play" type="button">Play</button>
-        <button id="restart" type="button">Restart</button>
+        <button class="primary" id="play" type="button">&#9656; Play</button>
+        <button id="restart" type="button">&#8635; Restart</button>
         <span class="rail-label" id="progressLabel">0%</span>
         <div class="speeds" role="group" aria-label="Playback speed">
           <span class="rail-label" style="align-self: center; margin-right: 4px">Speed</span>
@@ -709,7 +783,8 @@
       <h2>Scrub it</h2>
       <p>
         Drag anywhere on the section to seek, or use <code>&larr;</code> <code>&rarr;</code> to step
-        a week at a time. <code>Space</code> toggles playback.
+        a week at a time. <code>Space</code> toggles playback; <code>Home</code> and
+        <code>End</code> jump to either end of the record.
       </p>
     </div>
     <div class="note">
@@ -1661,12 +1736,59 @@
   }
 
   // ---- frame ----------------------------------------------------------------
+  /**
+   * A hairline under the pointer, with the date it would seek to.
+   *
+   * The section invites scrubbing but nothing said so until you tried; this
+   * answers the pointer before the first drag. Hidden while dragging, since
+   * the playhead is under the finger then, and during the title card.
+   */
+  let hoverX = null;
+  let dragging = false;
+  function drawHover() {
+    if (hoverX === null || dragging || introT < INTRO) return;
+    const x = Math.round(Math.max(PAD.l, Math.min(W - PAD.r, hoverX))) + 0.5;
+    const label = fmtDate(Math.max(T0, Math.min(T1, tsOf(x))));
+
+    ctx.save();
+    ctx.strokeStyle = theme.ink2;
+    ctx.globalAlpha = 0.4;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 4]);
+    ctx.beginPath();
+    ctx.moveTo(x, PAD.t - 4);
+    ctx.lineTo(x, Hgt - PAD.b);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.font = "500 11px 'IBM Plex Mono', ui-monospace, monospace";
+    const w = Math.ceil(ctx.measureText(label).width) + 14;
+    const h = 21;
+    const bx = Math.max(PAD.l, Math.min(W - PAD.r - w, x - w / 2));
+    const by = Hgt - PAD.b - h - 8;
+    ctx.globalAlpha = 0.94;
+    ctx.fillStyle = theme.surface;
+    ctx.strokeStyle = theme.line;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(bx, by, w, h, 3);
+    else ctx.rect(bx, by, w, h);
+    ctx.fill();
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = theme.ink2;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, bx + w / 2, by + h / 2 + 0.5);
+    ctx.restore();
+  }
+
   function render() {
     ctx.clearRect(0, 0, W, Hgt);
     ctx.drawImage(strata, 0, 0, W, Hgt);
     drawScale();
     drawChrome(t);
     drawGrains();
+    drawHover();
     drawVignette();
     drawEndCard();
     drawIntro();
@@ -1713,7 +1835,7 @@
 
   function setPlaying(next) {
     playing = next;
-    $('play').textContent = next ? 'Pause' : u >= 1 ? 'Replay' : 'Play';
+    $('play').textContent = next ? '\u2016 Pause' : u >= 1 ? '\u21bb Replay' : '\u25b8 Play';
   }
 
   // ---- wiring ---------------------------------------------------------------
@@ -1855,10 +1977,12 @@
     });
   }
 
-  let dragging = false;
-  const seekFromEvent = (ev) => {
+  const canvasX = (ev) => {
     const rect = canvas.getBoundingClientRect();
-    seek(tsOf(((ev.clientX - rect.left) / rect.width) * W));
+    return ((ev.clientX - rect.left) / rect.width) * W;
+  };
+  const seekFromEvent = (ev) => {
+    seek(tsOf(canvasX(ev)));
   };
   canvas.addEventListener('pointerdown', (ev) => {
     dragging = true;
@@ -1867,15 +1991,25 @@
     seekFromEvent(ev);
   });
   canvas.addEventListener('pointermove', (ev) => {
+    // Touch leaves no resting pointer, so no hairline: it would freeze under
+    // the last touch and read as a stuck cursor.
+    hoverX = ev.pointerType === 'touch' ? null : canvasX(ev);
     if (dragging) seekFromEvent(ev);
   });
   canvas.addEventListener('pointerup', () => {
     dragging = false;
   });
+  canvas.addEventListener('pointerleave', () => {
+    hoverX = null;
+  });
 
   window.addEventListener('keydown', (ev) => {
-    if (ev.target !== document.body) return;
+    // Clicking Play leaves focus on the button, and the old body-only guard
+    // then swallowed every shortcut. Only Space stays deferential: on a
+    // focused button it IS the click, and handling it here would double up.
+    const onButton = ev.target instanceof Element && ev.target.closest('button');
     if (ev.code === 'Space') {
+      if (onButton) return;
       ev.preventDefault();
       setPlaying(!playing);
     } else if (ev.code === 'ArrowRight') {
@@ -1884,6 +2018,12 @@
     } else if (ev.code === 'ArrowLeft') {
       ev.preventDefault();
       seek(t - 604800);
+    } else if (ev.code === 'Home') {
+      ev.preventDefault();
+      seek(T0);
+    } else if (ev.code === 'End') {
+      ev.preventDefault();
+      seek(T1);
     }
   });
 
