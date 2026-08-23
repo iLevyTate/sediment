@@ -117,6 +117,10 @@
       }
       html {
         -webkit-tap-highlight-color: transparent;
+        scrollbar-color: color-mix(in srgb, var(--muted) 55%, transparent) transparent;
+      }
+      ::selection {
+        background: color-mix(in srgb, var(--accent) 26%, transparent);
       }
       /* Chrome 131+ lets height: auto interpolate, which is what animates the
          token disclosure open. Everywhere else the property is ignored and the
@@ -674,6 +678,27 @@
       .actions[hidden] {
         display: none;
       }
+      /* Both appear by losing [hidden]; @starting-style gives that reveal a
+         first frame to ease from, in browsers that know it. */
+      @media (prefers-reduced-motion: no-preference) {
+        .actions,
+        .demo-note {
+          transition:
+            opacity 0.35s var(--ease),
+            translate 0.35s var(--ease);
+        }
+        @starting-style {
+          .actions,
+          .demo-note {
+            opacity: 0;
+            translate: 0 8px;
+          }
+        }
+      }
+      .actions .ok {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
       .actions .note {
         font-family: 'IBM Plex Mono', ui-monospace, monospace;
         font-size: 11px;
@@ -899,6 +924,13 @@
       </div>
 
       <div id="stage">
+        <noscript>
+          <p class="demo-note">
+            This page builds everything in your browser, so it needs JavaScript. The
+            <a href="https://github.com/iLevyTate/sediment">CLI</a> does the same job from a clone,
+            with no browser at all.
+          </p>
+        </noscript>
         <div class="film" id="film">
           <iframe id="frame" title="Repository history"></iframe>
           <!--
@@ -964,8 +996,8 @@
           a live build measures file sizes instead. Type any repository above to build one.
         </p>
         <div class="actions" id="actions" hidden>
-          <a id="dlHtml" download><button type="button">Download page</button></a>
-          <a id="dlJson" download><button type="button">Download data</button></a>
+          <a id="dlHtml" download><button type="button">&#8595; Download page</button></a>
+          <a id="dlJson" download><button type="button">&#8595; Download data</button></a>
           <button type="button" id="copyLink">Copy link</button>
           <span class="note" id="summary"></span>
         </div>

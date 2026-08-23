@@ -336,12 +336,22 @@ for (const chip of document.querySelectorAll('[data-example]')) {
 }
 
 $('copyLink').addEventListener('click', async () => {
+  // The confirmation belongs on the button that was pressed, not in a status
+  // line half a screen away.
+  const btn = $('copyLink');
   try {
     await navigator.clipboard.writeText(location.href);
-    status('Link copied.');
+    btn.textContent = '\u2713 Copied';
+    btn.classList.add('ok');
   } catch {
     status('Copy the address bar to share this.', true);
+    return;
   }
+  clearTimeout(btn._revert);
+  btn._revert = setTimeout(() => {
+    btn.textContent = 'Copy link';
+    btn.classList.remove('ok');
+  }, 1500);
 });
 
 // A repo in the hash makes every result shareable, and lets a README link
