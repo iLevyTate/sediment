@@ -162,7 +162,7 @@
       }
       /* The page assembles the way the film does: each section settles into
          place, top to bottom, in about half a second. One pass on arrival.
-         The header and the form move without fading — a fade from zero would
+         The header and the form move without fading: a fade from zero would
          hold the first contentful paint hostage to the animation, and those
          two are the first paint. */
       @media (prefers-reduced-motion: no-preference) {
@@ -552,7 +552,7 @@
       }
 
       /* Placeholder strata: the shape of the answer, drawn while the answer
-         downloads. Deliberately abstract — soft, unlabelled bands — so it
+         downloads. Deliberately abstract, soft unlabelled bands, so it
          cannot be mistaken for real data. */
       .sk {
         position: absolute;
@@ -946,8 +946,8 @@
             <!--
               A stratigraphic section, drawn the way the film draws one: bands
               that thicken left to right as the tree grows. Static markup, so it
-              is on screen with the first paint. The shape is generic — no
-              repository's real numbers — and it is wiped away, never read.
+              is on screen with the first paint. The shape is generic, no
+              repository's real numbers, and it is wiped away, never read.
             -->
             <svg
               class="sk-strata"

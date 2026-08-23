@@ -1,7 +1,7 @@
 /**
  * Compact the datasets into the payload the player consumes.
  *
- * Pure — no filesystem, no node built-ins — because both producers use it: the
+ * Pure, with no filesystem and no node built-ins, because both producers use it: the
  * CLI (from local git, measuring lines) and the web build (from the GitHub API,
  * measuring bytes). Whatever the source, the player receives one shape.
  */
@@ -39,7 +39,7 @@ export function timeTicks(t0, t1) {
 }
 
 /**
- * @param {object} data normalized datasets — see README "Payload contract"
+ * @param {object} data normalized datasets, see README "Payload contract"
  * @returns {object} payload
  */
 export function buildPayload(data) {
@@ -144,8 +144,8 @@ export function buildPayload(data) {
 
 /**
  * Inline a payload into the player template, producing a standalone page.
- * Used by the CLI to write a file and by the web build to offer a download —
- * one code path, so an exported page is byte-identical to a generated one.
+ * Used by the CLI to write a file and by the web build to offer a download.
+ * One code path, so an exported page is byte-identical to a generated one.
  * @param {string} template @param {object} payload @returns {string}
  */
 export function buildHtml(template, payload) {

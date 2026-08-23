@@ -2,14 +2,14 @@
  * Build the same datasets from the GitHub REST API, for the hosted version
  * where there is no clone to read.
  *
- * The API cannot give per-commit file lists cheaply — that is one request per
- * commit — so this takes a different route to the same shape:
+ * The API cannot give per-commit file lists cheaply, at one request per
+ * commit, so this takes a different route to the same shape:
  *
  *   • the commit list comes from /commits (100 per request);
  *   • the tree at a set of anchor commits comes from /git/trees?recursive=1,
  *     one request each, carrying every path and its size in bytes;
  *   • file events are recovered by *diffing consecutive anchor trees*, which
- *     costs nothing extra and is real data — those files genuinely changed in
+ *     costs nothing extra and is real data: those files genuinely changed in
  *     that window, just attributed to the window rather than the exact commit.
  *
  * The trade against the CLI: sizes are bytes rather than lines (binaries score
@@ -57,8 +57,8 @@ export async function checkRate(token = '', fetchImpl = fetch) {
  * Split a request budget between commit pages and tree snapshots.
  *
  * Every commit page is 100 commits; every anchor is one tree. Anchors are what
- * make the section move, so they get a floor — below about eight the bands step
- * rather than grow — and the commit pages take whatever is left.
+ * make the section move, so they get a floor (below about eight the bands step
+ * rather than grow) and the commit pages take whatever is left.
  * @param {number} remaining
  */
 export function planBudget(remaining) {
@@ -123,7 +123,7 @@ export async function fetchHistory({
   if (!first.body.length) throw new Error('this repository has no commits');
 
   // The Link header tells us the page count up front, but only when CORS
-  // exposes it — so it drives the progress bar, never the loop. Paging stops on
+  // exposes it, so it drives the progress bar, never the loop. Paging stops on
   // a short page, which is true regardless of what headers arrive.
   const lastPage = Number((first.link.match(/[?&]page=(\d+)[^>]*>;\s*rel="last"/) || [])[1] || 0);
   const pageCap = Math.max(1, Math.ceil(maxCommits / PER));
@@ -134,7 +134,7 @@ export async function fetchHistory({
     page += 1;
     const of = lastPage ? `/${Math.min(lastPage, pageCap)}` : '';
     onProgress(
-      `reading commits — page ${page}${of}`,
+      `reading commits, page ${page}${of}`,
       lastPage ? page / Math.min(lastPage, pageCap) : 0.5
     );
     const next = await api(

@@ -8,8 +8,8 @@
  * into `other`.
  *
  * The result is a set of path *prefixes*, so a file that existed only in the
- * distant past — and is therefore absent from the tree the lanes were derived
- * from — still lands in a lane by longest-prefix match.
+ * distant past, and is therefore absent from the tree the lanes were derived
+ * from, still lands in a lane by longest-prefix match.
  */
 
 const ROOT = '';

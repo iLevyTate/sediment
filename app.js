@@ -9,7 +9,7 @@
  * The first screen is the one that has to be quick. Two things make it so: the
  * stage is laid out at its final size in the markup, so nothing moves when the
  * payload lands, and every request the first screen needs is in flight before
- * this module runs its first statement — the preloads in `index.html` start
+ * this module runs its first statement. The preloads in `index.html` start
  * them during head parsing, and the fetches below join those rather than
  * issuing new ones.
  */
@@ -49,8 +49,8 @@ const progress = (pct) => {
  *
  * The demo payload is served compressed, so the byte counts a stream reader
  * sees do not divide into any total the browser can report. Rather than print
- * a percentage that is quietly wrong, the bar eases toward — never reaching —
- * the end, and is closed out by whatever it was waiting on.
+ * a percentage that is quietly wrong, the bar eases toward the end without
+ * ever reaching it, and is closed out by whatever it was waiting on.
  * @param {number} [ceiling]
  * @returns {() => void} call to stop it
  */
@@ -69,7 +69,7 @@ function creep(ceiling = 0.9) {
 /**
  * Put the placeholder section back and label it with what is coming.
  * @param {string} title @param {string} sub
- * @param {boolean} [failed] stills the animation — nothing is coming after all
+ * @param {boolean} [failed] stills the animation, since nothing is coming after all
  */
 function settling(title, sub, failed = false) {
   $('skTitle').textContent = title;
@@ -87,9 +87,8 @@ const idle = (fn) =>
  *
  * Not on the frame's `load` event: that waits for its web fonts, and a visitor
  * behind a blocked or slow font CDN would sit staring at the placeholder for
- * as long as those take to give up — a film that has been drawn and is sitting
- * right behind it. The player draws during parse, so a parsed document is a
- * painted one. The frame is a blob of this origin, so its document is readable
+ * as long as those take to give up, with a finished film sitting right behind
+ * it. The player draws during parse, so a parsed document is a painted one. The frame is a blob of this origin, so its document is readable
  * from here; if some future browser disagrees, `load` is still the backstop.
  * @param {HTMLIFrameElement} frame @param {string} url the src it was given
  */

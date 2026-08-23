@@ -3,7 +3,7 @@
  *
  * The page is opened at `#film`, which drops the live-viewer chrome and hands
  * frame timing to `window.__strata`. Each frame steps exactly 1/fps of video
- * time, so the output does not depend on how fast this machine can screenshot —
+ * time, so the output does not depend on how fast this machine can screenshot,
  * and, since the grain simulation is seeded, is identical every run. Frames pipe
  * straight into ffmpeg rather than being staged on disk.
  *
@@ -80,7 +80,7 @@ export async function record({
     ({ chromium } = await import('playwright'));
   } catch {
     throw new Error(
-      'recording needs playwright — install it with `npm i -D playwright` and `npx playwright install chromium`'
+      'recording needs playwright: install it with `npm i -D playwright` and `npx playwright install chromium`'
     );
   }
 
