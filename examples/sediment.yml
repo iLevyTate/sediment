@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # sediment needs the whole history, not a shallow clone
-      - uses: iLevyTate/sediment@main
+      - uses: iLevyTate/sediment@v1
         with:
           gif: 'true' # implies video; the gif is derived from the mp4
           gif-width: '760'

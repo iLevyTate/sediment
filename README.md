@@ -55,7 +55,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
-      - uses: iLevyTate/sediment@main
+      - uses: iLevyTate/sediment@v1
         with:
           video: 'true'
           gif: 'true'
