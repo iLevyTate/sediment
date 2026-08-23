@@ -34,7 +34,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: actions/configure-pages@v5
-      - uses: iLevyTate/sediment@main
+      - uses: iLevyTate/sediment@v1
         with:
           output: _site
           gif: 'true'
