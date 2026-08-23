@@ -16,6 +16,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Formatting
+        run: npx prettier@3 --check .
+
       - name: Build this repository's own history
         run: node bin/sediment.js --repo . --out .sediment --json
 
