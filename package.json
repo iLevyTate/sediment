@@ -1,6 +1,6 @@
 {
   "name": "sediment",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Turn any git repository's history into a stratigraphic film.",
   "type": "module",
   "license": "MIT",
