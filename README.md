@@ -27,10 +27,11 @@ keep it current.
 On a clone, with nothing installed:
 
 ```bash
-npx sediment
+npx github:iLevyTate/sediment
 ```
 
-That writes `.sediment/index.html`. Open it in a browser. The whole thing is one file with the data
+The name `sediment` on npm belongs to somebody else's sentiment analyser, so npx pulls this one from
+GitHub instead. That writes `.sediment/index.html`. Open it in a browser. The whole thing is one file with the data
 baked in, so there is no server and no build step, and it still works with the network off. Add
 `--video` for a 1080p mp4 and `--gif` for something small enough to embed. Recording needs
 `playwright` and `ffmpeg` on your machine; the page and the datasets need neither.
@@ -41,7 +42,7 @@ first, and on a big repository that takes a while.
 
 Options worth knowing: `--out DIR` chooses where things land, `--json` writes the underlying
 datasets alongside the page, `--lanes N` changes how many bands the section is split into, and
-`--seconds N` sets how long the deposition runs in the video. `npx sediment --help` lists the rest.
+`--seconds N` sets how long the deposition runs in the video. `npx github:iLevyTate/sediment --help` lists the rest.
 
 ## Keeping it current in your README
 

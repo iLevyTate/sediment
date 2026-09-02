@@ -2,10 +2,10 @@
 /**
  * sediment. Turn a git repository's history into a stratigraphic film.
  *
- *   npx sediment                     # build .sediment/index.html from the repo here
- *   npx sediment --video             # ...and record it to .sediment/sediment.mp4
- *   npx sediment --repo ../other     # somewhere else
- *   npx sediment web-assets          # assemble _site/ for GitHub Pages
+ *   npx github:iLevyTate/sediment                     # build .sediment/index.html from the repo here
+ *   npx github:iLevyTate/sediment --video             # ...and record it to .sediment/sediment.mp4
+ *   npx github:iLevyTate/sediment --repo ../other     # somewhere else
+ *   npx github:iLevyTate/sediment web-assets          # assemble _site/ for GitHub Pages
  */
 
 import fs from 'fs';
