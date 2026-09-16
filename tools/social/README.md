@@ -7,7 +7,17 @@ when the page changes.
 ```bash
 node tools/social/capture.mjs      # .social/screen.mp4 — the phone screen, 786x1704
 node tools/social/compose.mjs      # .social/sediment-social.mp4 — 1080x1920, framed, with an end card
+
+node tools/social/capture.mjs --cut short                    # .social/screen-short.mp4, ~20s
+node tools/social/compose.mjs --screen .social/screen-short.mp4 \
+  --out .social/sediment-shorts-1080x1920.mp4                # 23s, for YouTube Shorts
 ```
+
+`--cut short` runs a second timeline: one speed tap rather than two, one pass
+over the readouts, and a tail that stops on the `npx` line. The film still
+deposits end to end, at 4×. `compose.mjs` shortens its end card to match
+whenever the recording it is given is under thirty seconds, or take `--outro`
+and `--fade` in seconds.
 
 `capture.mjs` serves the repository on a local port, opens it at an iPhone
 viewport, and records a scripted walkthrough of the demo film: the section

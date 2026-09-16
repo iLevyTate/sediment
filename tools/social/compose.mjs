@@ -24,8 +24,12 @@ const H = 1920;
 const SCREEN = { w: 740, h: 1604, x: 170, y: 158 }; // 393x852 at 1.883, centred
 const BEZEL = 15;
 const FPS = 30;
-const OUTRO = 5.4; // seconds of end card
-const FADE = 0.8; // seconds of cross fade into it
+// Seconds of end card, and of dip into it. A short cut cannot spend five
+// seconds on a still, so both shrink when the recording is a Shorts-length one.
+const OUTRO_LONG = 5.4;
+const OUTRO_SHORT = 3.2;
+const FADE_LONG = 0.8;
+const FADE_SHORT = 0.6;
 
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -223,6 +227,9 @@ async function main() {
   await stills();
 
   const screenSeconds = await probe(screenPath);
+  const short = screenSeconds < 30;
+  const OUTRO = Number(arg('outro', short ? OUTRO_SHORT : OUTRO_LONG));
+  const FADE = Number(arg('fade', short ? FADE_SHORT : FADE_LONG));
   const filter = [
     // The recording, scaled into the hole and laid on the canvas. It dips out
     // at the end rather than cross-fading: xfade wants a newer ffmpeg than the

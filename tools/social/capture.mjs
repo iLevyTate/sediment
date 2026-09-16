@@ -30,12 +30,19 @@ const FPS = Number(process.env.SEDIMENT_SOCIAL_FPS || 30);
 const VIEW = { width: 393, height: 852 }; // iPhone 14 Pro, CSS pixels
 const SCALE = 2;
 const PORT = 8771;
-const FILM_START = 1; // seconds of video before the film's own clock starts
+// Seconds of video before the film's own clock starts, per cut. The long cut
+// holds on the first screen for a moment; the short one cannot afford to.
+const FILM_START = { long: 1, short: 0.2 };
 
 const args = process.argv.slice(2);
+const flag = (name, fallback) => {
+  const i = args.indexOf(`--${name}`);
+  return i > -1 && args[i + 1] ? args[i + 1] : fallback;
+};
+/** `long` is the 47-second cut; `short` is the ~23-second one for Shorts. */
+const CUT = flag('cut', 'long') === 'short' ? 'short' : 'long';
 const outPath = path.resolve(
-  (args[args.indexOf('--out') + 1] && args.includes('--out') && args[args.indexOf('--out') + 1]) ||
-    path.join(ROOT, '.social/screen.mp4')
+  flag('out', path.join(ROOT, CUT === 'short' ? '.social/screen-short.mp4' : '.social/screen.mp4'))
 );
 
 // ---- a static server, so the page runs from http rather than file: ---------
@@ -235,9 +242,11 @@ async function main() {
   const FILM_TOP = Math.min(maxScroll, geom.frameTop - 58);
   const FILM_PEEK = Math.max(0, geom.frameTop - 620);
   const ACTIONS = Math.min(maxScroll, geom.actionsTop - 470);
+  // Far enough that the npx card is the thing on screen, and nothing else.
+  const CARD_NPX = Math.min(maxScroll, geom.actionsTop + 150);
   // Offsets inside the film, measured off the player's own layout.
   const IN = { section: 210, done: 430, stats: 470, ticker: 770, legend: 1010 };
-  log(`film at ${Math.round(geom.frameTop)}, top ${Math.round(FILM_TOP)}, max ${maxScroll}`);
+  log(`${CUT} cut — film at ${Math.round(geom.frameTop)}, top ${Math.round(FILM_TOP)}, max ${maxScroll}`);
 
   /** Centre of an element inside the film iframe, in screen coordinates. */
   const filmPoint = async (selector) => {
@@ -277,7 +286,7 @@ async function main() {
     await target.evaluate((sel) => document.querySelector(sel).click(), selector);
   };
 
-  const beats = [
+  const longCut = [
     {
       // The first screen: the name, and the field that takes any repository.
       name: 'open',
@@ -359,6 +368,72 @@ async function main() {
     },
   ];
 
+
+  // The short cut keeps the film and drops everything the film does not need:
+  // one speed tap instead of two, one pass over the readouts, and a tail that
+  // stops on the command rather than touring the page. The deposition still
+  // runs end to end, at 4x, because that is the thing worth watching.
+  const shortCut = [
+    {
+      name: 'open',
+      until: 2.2,
+      async at(t) {
+        pageY = leg(t, 0.3, 2.2, 0, FILM_PEEK);
+      },
+    },
+    {
+      name: 'film',
+      until: 5,
+      async at(t) {
+        pageY = leg(t, 0, 1.8, FILM_PEEK, FILM_TOP);
+        filmY = leg(t, 1.2, 2.6, 0, IN.section);
+      },
+    },
+    {
+      // One tap, and it runs the whole seventeen years from here.
+      name: 'controls',
+      until: 8,
+      async at(t, vt) {
+        filmY = IN.section;
+        await once('speed4', 0.6, t, () => tap('[data-speed="4"]', vt, true));
+      },
+    },
+    {
+      // At 4x the counters move fast enough to read as motion, not as numbers.
+      name: 'stats',
+      until: 11,
+      async at(t) {
+        filmY = leg(t, 0.2, 1.8, IN.section, IN.stats);
+      },
+    },
+    {
+      name: 'legend',
+      until: 13.2,
+      async at(t) {
+        filmY = leg(t, 0, 1.8, IN.stats, IN.legend);
+      },
+    },
+    {
+      // Back for the last stretch, the end card and the totals it lands on.
+      name: 'finish',
+      until: 17.4,
+      async at(t) {
+        filmY = leg(t, 0, 1.1, IN.legend, IN.section, easeOut);
+        if (t > 2.6) filmY = leg(t, 2.8, 3.8, IN.section, IN.done);
+      },
+    },
+    {
+      // Stop on the command. Nothing after it is worth two seconds here.
+      name: 'tail',
+      until: 19.8,
+      async at(t) {
+        pageY = leg(t, 0, 2, FILM_TOP, CARD_NPX);
+      },
+    },
+  ];
+
+  const beats = CUT === 'short' ? shortCut : longCut;
+
   const total = beats[beats.length - 1].until;
   const frames = Math.round(total * FPS);
   log(`${total}s at ${FPS}fps = ${frames} frames, ${VIEW.width * SCALE}x${VIEW.height * SCALE}`);
@@ -411,7 +486,7 @@ async function main() {
     // in steps of at most a 30th of a second, which is the largest step the
     // player will take in one frame, so a preview at a lower frame rate still
     // deposits at the same rate as the real thing.
-    const filmClock = Math.max(0, vt - FILM_START) * 1000;
+    const filmClock = Math.max(0, vt - FILM_START[CUT]) * 1000;
     await film.evaluate(
       ([fy, from, to]) => {
         window.scrollTo({ top: fy, behavior: 'instant' });

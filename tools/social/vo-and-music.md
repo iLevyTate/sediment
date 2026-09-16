@@ -5,6 +5,11 @@ seconds**, 30 fps, 9:16, with a silent stereo track you replace. Timecodes are
 from the first frame of that file. Re-render the clip and the timings move, so
 re-read the beat sheet against whatever `tools/social/capture.mjs` last wrote.
 
+There is a second cut for YouTube Shorts — `sediment-shorts-1080x1920.mp4`,
+**23.0 seconds**, from `capture.mjs --cut short`. Its own script and score are
+at the end, under [The Shorts cut](#the-shorts-cut-230). Everything between
+here and there is the long one.
+
 ## The cut
 
 | In     | Out    | On screen                                                    | Room for VO     |
@@ -369,3 +374,98 @@ the device and clear of the UI.
   check Hume's terms for commercial use of a designed voice.
 - Both are non-deterministic. Three to five takes, then choose; nothing here
   reproduces exactly from the same prompt.
+
+## The Shorts cut (23.0)
+
+Same recording tools, a tighter timeline: one speed tap instead of two, one
+pass over the readouts, and a tail that stops on the command. The film still
+deposits end to end — it runs at 4× from 0:05.6 and finishes at 0:15.6, which
+is the whole point of the cut.
+
+| In     | Out    | On screen                                      |
+| ------ | ------ | ---------------------------------------------- |
+| 0:00   | 0:02.2 | Wordmark, the field, the example chips         |
+| 0:02.2 | 0:05.0 | Film takes the screen                          |
+| 0:05.0 | 0:08.0 | Section and transport; **4×** tapped at 0:05.6 |
+| 0:08.0 | 0:11.0 | Readouts, running at four times speed          |
+| 0:11.0 | 0:13.2 | Strata legend                                  |
+| 0:13.2 | 0:17.4 | Finishes on 27 Jul 2026, totals land           |
+| 0:17.4 | 0:19.2 | `npx github:iLevyTate/sediment`                |
+| 0:19.2 | 0:19.8 | Dip to black                                   |
+| 0:19.8 | 0:23.0 | End card                                       |
+
+### HUME
+
+```
+Every commit this repository has ever taken. [pause] Time runs left to right. Each band is a region of the tree, its thickness the code alive at that moment. [pause] Seventeen years of Express. [pause] Ten seconds. [long pause] Run it on any repository with en-pee-ex. [pause] Sediment. Link below.
+```
+
+Forty-four words, about twenty seconds with the pauses, starting at 0:00.8. Use
+the same designed voice and the same acting instructions as the long cut; only
+`trailing_silence` changes — 0.6, 0.7, 0.5, 1.4, 0.7, 0.4 in that order.
+
+"Ten seconds" is load-bearing: in this cut the deposition really does run from
+0:05.6 to 0:15.6. If you retime the beats, retime the line.
+
+### SUNO
+
+Style
+
+```
+Slow geological ambient score, 80 BPM, twenty-three seconds, patient and documentary. Three elements only: a deep sub drone, a granular tape texture and a soft low pulse on the beat, with single struck felt-piano notes over them. No drum kit, no risers, no cymbals, one swell in the whole piece. Opens with room tone, the sub drone and one struck piano note. At five seconds the pulse enters and doubles at once, holding flat and quick underneath. At thirteen the texture widens and a second drone slides in a fifth below. At fifteen a slow low swell peaks, the only lift in the piece, and holds to seventeen. Then it pulls back to sub and pulse. At nineteen everything resolves onto one sustained low chord and the pulse stops dead. That chord holds alone, decaying into room tone, nothing after twenty-three seconds. Restrained, unhurried, never triumphant, never a trailer.
+```
+
+Timeline
+
+```
+[80 BPM]
+[Intro]
+[0:00 room tone, deep sub drone, one struck felt-piano note]
+[Verse]
+[0:05.6 low pulse enters and doubles at once, flat and quick]
+[0:09 second piano note, nothing else changes]
+[0:13 drone widens, a second drone a fifth below slides underneath]
+[Chorus]
+[0:15.6 slow low swell peaks, the only lift in the piece]
+[0:17.4 pull back to sub and pulse, swell gone]
+[Outro]
+[0:19.2 resolve onto one sustained low chord, pulse stops dead]
+[0:19.8 chord holds alone under the end card]
+[0:22 chord begins to decay]
+[0:23 out]
+```
+
+### Captions
+
+```srt
+1
+00:00:00,800 --> 00:00:03,600
+Every commit this repository
+has ever taken.
+
+2
+00:00:04,200 --> 00:00:08,600
+Time runs left to right.
+Each band is a region of the tree.
+
+3
+00:00:08,700 --> 00:00:12,600
+Its thickness, the code
+alive at that moment.
+
+4
+00:00:13,600 --> 00:00:17,200
+Seventeen years of Express.
+Ten seconds.
+
+5
+00:00:17,800 --> 00:00:20,600
+Run it on any repository with npx.
+
+6
+00:00:21,200 --> 00:00:22,800
+Sediment. Link below.
+```
+
+The mix command earlier in this file works unchanged; point it at
+`sediment-shorts-1080x1920.mp4`.
