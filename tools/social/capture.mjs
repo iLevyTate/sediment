@@ -225,7 +225,6 @@ async function main() {
       frameLeft: r.left,
       frameHeight: r.height,
       actionsTop: document.getElementById('actions').getBoundingClientRect().top + scrollY,
-      cardsTop: document.querySelector('.cards').getBoundingClientRect().top + scrollY,
       docHeight: document.body.scrollHeight,
     };
   });
@@ -236,7 +235,6 @@ async function main() {
   const FILM_TOP = Math.min(maxScroll, geom.frameTop - 58);
   const FILM_PEEK = Math.max(0, geom.frameTop - 620);
   const ACTIONS = Math.min(maxScroll, geom.actionsTop - 470);
-  const CARDS_1 = Math.min(maxScroll, geom.cardsTop - 90);
   // Offsets inside the film, measured off the player's own layout.
   const IN = { section: 210, done: 430, stats: 470, ticker: 770, legend: 1010 };
   log(`film at ${Math.round(geom.frameTop)}, top ${Math.round(FILM_TOP)}, max ${maxScroll}`);
@@ -342,21 +340,21 @@ async function main() {
       },
     },
     {
-      // What you leave with: the page, the data, the link.
+      // What you leave with: the page, the data, the link. Short: the film is
+      // the reason to watch, and this end of the page is all type.
       name: 'actions',
-      until: 38.8,
+      until: 37.4,
       async at(t, vt) {
-        pageY = leg(t, 0.3, 2.6, FILM_TOP, ACTIONS);
-        await once('copy', 3.2, t, () => tap('#copyLink', vt, false));
+        pageY = leg(t, 0.2, 2.2, FILM_TOP, ACTIONS);
+        await once('copy', 2.4, t, () => tap('#copyLink', vt, false));
       },
     },
     {
-      // How to run it yourself, and how to keep it current.
+      // How to run it yourself, and how to keep it current: one pass, no stop.
       name: 'cards',
-      until: 45.6,
+      until: 41.4,
       async at(t) {
-        pageY = leg(t, 0.2, 2.8, ACTIONS, CARDS_1);
-        if (t > 2.8) pageY = leg(t, 3, 6.2, CARDS_1, maxScroll);
+        pageY = leg(t, 0, 3.6, ACTIONS, maxScroll - 40);
       },
     },
   ];
