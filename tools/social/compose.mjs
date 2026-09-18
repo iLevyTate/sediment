@@ -54,7 +54,9 @@ const run = (args) =>
 
 const probe = (file) =>
   new Promise((resolve, reject) => {
-    const proc = spawn(FFMPEG, ['-hide_banner', '-i', file], { stdio: ['ignore', 'ignore', 'pipe'] });
+    const proc = spawn(FFMPEG, ['-hide_banner', '-i', file], {
+      stdio: ['ignore', 'ignore', 'pipe'],
+    });
     let err = '';
     proc.stderr.on('data', (d) => {
       err += d.toString();
@@ -90,7 +92,16 @@ const BASE_CSS = `
   .strata { position: absolute; left: 0; right: 0; height: 100%; }
   .strata i { position: absolute; left: -6%; width: 112%; display: block; filter: blur(7px); }
 `;
-const RAMP = ['#7ea465', '#a14a30', '#3e7ca8', '#b47f22', '#32939a', '#666f7f', '#719353', '#787836'];
+const RAMP = [
+  '#7ea465',
+  '#a14a30',
+  '#3e7ca8',
+  '#b47f22',
+  '#32939a',
+  '#666f7f',
+  '#719353',
+  '#787836',
+];
 /** Faint bands top and bottom, thicker and more opaque the further out they go. */
 const strata = (from, to, count, dir) => {
   let out = '';
@@ -98,7 +109,7 @@ const strata = (from, to, count, dir) => {
     const p = count === 1 ? 0 : i / (count - 1);
     const y = from + (to - from) * p;
     const h = 14 + p * 54;
-    const a = (0.06 + p * 0.20).toFixed(3);
+    const a = (0.06 + p * 0.2).toFixed(3);
     out += `<i style="top:${Math.round(y)}px;height:${Math.round(h)}px;background:${
       RAMP[(dir + i) % RAMP.length]
     };opacity:${a}"></i>`;
@@ -107,7 +118,12 @@ const strata = (from, to, count, dir) => {
 };
 
 const overlayHtml = () => {
-  const b = { x: SCREEN.x - BEZEL, y: SCREEN.y - BEZEL, w: SCREEN.w + BEZEL * 2, h: SCREEN.h + BEZEL * 2 };
+  const b = {
+    x: SCREEN.x - BEZEL,
+    y: SCREEN.y - BEZEL,
+    w: SCREEN.w + BEZEL * 2,
+    h: SCREEN.h + BEZEL * 2,
+  };
   const r = 58;
   // A mask that is opaque everywhere but the screen, so the recording shows
   // through the hole and its square corners are covered.
@@ -193,7 +209,10 @@ const endcardHtml = () => `<!doctype html><meta charset="utf-8"><style>${BASE_CS
 async function stills() {
   const { chromium } = await import(process.env.SEDIMENT_PLAYWRIGHT || 'playwright');
   const browser = await chromium.launch({ args: ['--force-color-profile=srgb'] });
-  const context = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
+  const context = await browser.newContext({
+    viewport: { width: W, height: H },
+    deviceScaleFactor: 1,
+  });
   const cssPath = path.join(FONT_DIR, 'plex.css');
   if (fs.existsSync(cssPath)) {
     const css = fs.readFileSync(cssPath, 'utf8');
@@ -245,18 +264,59 @@ async function main() {
   ].join(';');
 
   await run([
-    '-y', '-hide_banner', '-loglevel', 'error',
-    '-i', screenPath,
-    '-loop', '1', '-t', String(screenSeconds), '-i', path.join(outDir, 'frame.png'),
-    '-loop', '1', '-t', String(OUTRO), '-i', path.join(outDir, 'endcard.png'),
+    '-y',
+    '-hide_banner',
+    '-loglevel',
+    'error',
+    '-i',
+    screenPath,
+    '-loop',
+    '1',
+    '-t',
+    String(screenSeconds),
+    '-i',
+    path.join(outDir, 'frame.png'),
+    '-loop',
+    '1',
+    '-t',
+    String(OUTRO),
+    '-i',
+    path.join(outDir, 'endcard.png'),
     // Social players prefer a track to no track at all.
-    '-f', 'lavfi', '-t', String(screenSeconds + OUTRO),
-    '-i', 'anullsrc=channel_layout=stereo:sample_rate=48000',
-    '-filter_complex', filter,
-    '-map', '[v]', '-map', '3:a',
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', '19', '-profile:v', 'high', '-level', '4.1',
-    '-pix_fmt', 'yuv420p', '-g', String(FPS * 2), '-c:a', 'aac', '-b:a', '128k',
-    '-movflags', '+faststart', '-shortest', outPath,
+    '-f',
+    'lavfi',
+    '-t',
+    String(screenSeconds + OUTRO),
+    '-i',
+    'anullsrc=channel_layout=stereo:sample_rate=48000',
+    '-filter_complex',
+    filter,
+    '-map',
+    '[v]',
+    '-map',
+    '3:a',
+    '-c:v',
+    'libx264',
+    '-preset',
+    'slow',
+    '-crf',
+    '19',
+    '-profile:v',
+    'high',
+    '-level',
+    '4.1',
+    '-pix_fmt',
+    'yuv420p',
+    '-g',
+    String(FPS * 2),
+    '-c:a',
+    'aac',
+    '-b:a',
+    '128k',
+    '-movflags',
+    '+faststart',
+    '-shortest',
+    outPath,
   ]);
 
   const seconds = await probe(outPath);

@@ -246,7 +246,9 @@ async function main() {
   const CARD_NPX = Math.min(maxScroll, geom.actionsTop + 150);
   // Offsets inside the film, measured off the player's own layout.
   const IN = { section: 210, done: 430, stats: 470, ticker: 770, legend: 1010 };
-  log(`${CUT} cut — film at ${Math.round(geom.frameTop)}, top ${Math.round(FILM_TOP)}, max ${maxScroll}`);
+  log(
+    `${CUT} cut — film at ${Math.round(geom.frameTop)}, top ${Math.round(FILM_TOP)}, max ${maxScroll}`
+  );
 
   /** Centre of an element inside the film iframe, in screen coordinates. */
   const filmPoint = async (selector) => {
@@ -368,7 +370,6 @@ async function main() {
     },
   ];
 
-
   // The short cut keeps the film and drops everything the film does not need:
   // one speed tap instead of two, one pass over the readouts, and a tail that
   // stops on the command rather than touring the page. The deposition still
@@ -443,9 +444,28 @@ async function main() {
   const ffmpeg = spawn(
     FFMPEG,
     [
-      '-y', '-f', 'image2pipe', '-c:v', 'png', '-r', String(FPS), '-i', 'pipe:0',
-      '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p',
-      '-movflags', '+faststart', '-r', String(FPS), outPath,
+      '-y',
+      '-f',
+      'image2pipe',
+      '-c:v',
+      'png',
+      '-r',
+      String(FPS),
+      '-i',
+      'pipe:0',
+      '-c:v',
+      'libx264',
+      '-preset',
+      'slow',
+      '-crf',
+      '16',
+      '-pix_fmt',
+      'yuv420p',
+      '-movflags',
+      '+faststart',
+      '-r',
+      String(FPS),
+      outPath,
     ],
     { stdio: ['pipe', 'ignore', 'pipe'] }
   );
@@ -501,9 +521,7 @@ async function main() {
     if (f % (FPS * 2) === 0) {
       const done = f / frames || 0.0001;
       const eta = ((Date.now() - started) / done) * (1 - done);
-      log(
-        `  ${beats[beatIndex].name} — frame ${f}/${frames}, ${Math.round(eta / 1000)}s left`
-      );
+      log(`  ${beats[beatIndex].name} — frame ${f}/${frames}, ${Math.round(eta / 1000)}s left`);
     }
   }
   ffmpeg.stdin.end();
