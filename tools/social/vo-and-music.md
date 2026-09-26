@@ -5,6 +5,13 @@ seconds**, 30 fps, 9:16, with a silent stereo track you replace. Timecodes are
 from the first frame of that file. Re-render the clip and the timings move, so
 re-read the beat sheet against whatever `tools/social/capture.mjs` last wrote.
 
+The wide version, `sediment-wide-1920x1080.mp4`, is the same 46.8 seconds: the
+desktop recording runs on this cut's marks to the frame, so the script, score
+and captions below fit it unchanged. Burn captions over the lower edge of the
+browser window, centred on it (x 118 to 1478, around y 900 to 980) rather than
+in the band beneath it, which is only about 85 pixels and has the phone's foot
+in it.
+
 There is a second cut for YouTube Shorts — `sediment-shorts-1080x1920.mp4`,
 **23.0 seconds**, from `capture.mjs --cut short`. Its own script and score are
 at the end, under [The Shorts cut](#the-shorts-cut-230). Everything between

@@ -27,23 +27,42 @@ const FONT_DIR = path.join(HERE, '.fonts');
 const FFMPEG = process.env.SEDIMENT_FFMPEG || 'ffmpeg';
 
 const FPS = Number(process.env.SEDIMENT_SOCIAL_FPS || 30);
-const VIEW = { width: 393, height: 852 }; // iPhone 14 Pro, CSS pixels
-const SCALE = 2;
 const PORT = 8771;
-// Seconds of video before the film's own clock starts, per cut. The long cut
-// holds on the first screen for a moment; the short one cannot afford to.
-const FILM_START = { long: 1, short: 0.2 };
 
 const args = process.argv.slice(2);
 const flag = (name, fallback) => {
   const i = args.indexOf(`--${name}`);
   return i > -1 && args[i + 1] ? args[i + 1] : fallback;
 };
+
+/**
+ * `phone` is an iPhone 14 Pro at 2x, touch and all. `desktop` is a 1440-wide
+ * browser at 1x with a mouse, recorded against the long cut's clock so the two
+ * can share a frame and deposit in step.
+ */
+const DEVICE = flag('device', 'phone') === 'desktop' ? 'desktop' : 'phone';
+const DEVICES = {
+  phone: { viewport: { width: 393, height: 852 }, scale: 2 },
+  desktop: { viewport: { width: 1440, height: 900 }, scale: 1 },
+};
+const VIEW = DEVICES[DEVICE].viewport;
+const SCALE = DEVICES[DEVICE].scale;
+// Seconds of video before the film's own clock starts, per cut. The long cut
+// holds on the first screen for a moment; the short one cannot afford to.
+const FILM_START = { long: 1, short: 0.2 };
+
 /** `long` is the 47-second cut; `short` is the ~23-second one for Shorts. */
 const CUT = flag('cut', 'long') === 'short' ? 'short' : 'long';
-const outPath = path.resolve(
-  flag('out', path.join(ROOT, CUT === 'short' ? '.social/screen-short.mp4' : '.social/screen.mp4'))
-);
+if (DEVICE === 'desktop' && CUT === 'short') {
+  console.error('the desktop recording only has a long cut; drop --cut short');
+  process.exit(1);
+}
+const DEFAULT_OUT = {
+  'phone/long': '.social/screen.mp4',
+  'phone/short': '.social/screen-short.mp4',
+  'desktop/long': '.social/screen-desktop.mp4',
+}[`${DEVICE}/${CUT}`];
+const outPath = path.resolve(flag('out', path.join(ROOT, DEFAULT_OUT)));
 
 // ---- a static server, so the page runs from http rather than file: ---------
 const MIME = {
@@ -127,14 +146,18 @@ async function main() {
   const context = await browser.newContext({
     viewport: VIEW,
     deviceScaleFactor: SCALE,
-    isMobile: true,
-    hasTouch: true,
     colorScheme: 'dark',
     reducedMotion: 'no-preference',
     permissions: ['clipboard-read', 'clipboard-write'],
-    userAgent:
-      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 ' +
-      '(KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+    ...(DEVICE === 'phone'
+      ? {
+          isMobile: true,
+          hasTouch: true,
+          userAgent:
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 ' +
+            '(KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+        }
+      : {}),
   });
 
   await context.route('https://fonts.googleapis.com/**', (route) =>
@@ -191,38 +214,56 @@ async function main() {
   await film.evaluate(() => document.getElementById('restart').click());
 
   // A touch ring, so a tap reads as a tap rather than a button changing by
-  // itself. Drawn from this script's clock, not from CSS, so it is frame-exact.
-  await page.evaluate(() => {
-    const layer = document.createElement('div');
-    layer.style.cssText =
-      'position:fixed;inset:0;z-index:2147483647;pointer-events:none;overflow:hidden';
-    document.body.appendChild(layer);
-    const rings = [];
-    window.__tap = (x, y, t) => {
-      const el = document.createElement('div');
-      el.style.cssText =
-        'position:absolute;width:78px;height:78px;margin:-39px 0 0 -39px;border-radius:50%;' +
-        'border:2px solid rgba(146,226,231,.95);' +
-        'background:radial-gradient(circle,rgba(146,226,231,.34),rgba(146,226,231,0) 68%)';
-      el.style.left = `${x}px`;
-      el.style.top = `${y}px`;
-      layer.appendChild(el);
-      rings.push({ el, t });
-    };
-    window.__tapFrame = (t) => {
-      for (let i = rings.length - 1; i >= 0; i -= 1) {
-        const age = t - rings[i].t;
-        if (age > 0.62) {
-          rings[i].el.remove();
-          rings.splice(i, 1);
-          continue;
+  // itself, and on the desktop a pointer to make it. Both are drawn from this
+  // script's clock, not from CSS, so they are frame-exact.
+  await page.evaluate(
+    (ring) => {
+      const layer = document.createElement('div');
+      layer.style.cssText =
+        'position:fixed;inset:0;z-index:2147483647;pointer-events:none;overflow:hidden';
+      document.body.appendChild(layer);
+      const pointer = document.createElement('div');
+      pointer.style.cssText =
+        'position:absolute;left:0;top:0;width:22px;height:30px;opacity:0;' +
+        'filter:drop-shadow(0 2px 3px rgba(0,0,0,.55))';
+      pointer.innerHTML =
+        '<svg viewBox="0 0 22 30" width="22" height="30"><path d="M2 2v22l6-5.5 4 9 3.6-1.6' +
+        '-4-8.9H20z" fill="#f4f6fa" stroke="#0b0e12" stroke-width="1.6" ' +
+        'stroke-linejoin="round"/></svg>';
+      layer.appendChild(pointer);
+      window.__pointer = (x, y, alpha) => {
+        pointer.style.transform = `translate(${x - 2}px, ${y - 2}px)`;
+        pointer.style.opacity = String(alpha);
+      };
+      const rings = [];
+      window.__tap = (x, y, t) => {
+        const el = document.createElement('div');
+        el.style.cssText =
+          `position:absolute;width:${ring}px;height:${ring}px;` +
+          `margin:-${ring / 2}px 0 0 -${ring / 2}px;border-radius:50%;` +
+          'border:2px solid rgba(146,226,231,.95);' +
+          'background:radial-gradient(circle,rgba(146,226,231,.34),rgba(146,226,231,0) 68%)';
+        el.style.left = `${x}px`;
+        el.style.top = `${y}px`;
+        layer.appendChild(el);
+        rings.push({ el, t });
+      };
+      window.__tapFrame = (t) => {
+        for (let i = rings.length - 1; i >= 0; i -= 1) {
+          const age = t - rings[i].t;
+          if (age > 0.62) {
+            rings[i].el.remove();
+            rings.splice(i, 1);
+            continue;
+          }
+          const p = Math.max(0, age) / 0.62;
+          rings[i].el.style.opacity = String(1 - p * p);
+          rings[i].el.style.transform = `scale(${0.55 + p * 0.85})`;
         }
-        const p = Math.max(0, age) / 0.62;
-        rings[i].el.style.opacity = String(1 - p * p);
-        rings[i].el.style.transform = `scale(${0.55 + p * 0.85})`;
-      }
-    };
-  });
+      };
+    },
+    DEVICE === 'phone' ? 78 : 44
+  );
 
   // Where things are, measured rather than guessed.
   const geom = await page.evaluate(() => {
@@ -246,9 +287,12 @@ async function main() {
   const CARD_NPX = Math.min(maxScroll, geom.actionsTop + 150);
   // Offsets inside the film, measured off the player's own layout.
   const IN = { section: 210, done: 430, stats: 470, ticker: 770, legend: 1010 };
-  log(
-    `${CUT} cut — film at ${Math.round(geom.frameTop)}, top ${Math.round(FILM_TOP)}, max ${maxScroll}`
-  );
+  // On the desktop the whole instrument fits on screen at once, so the page
+  // parks once and only the legend needs the film scrolled to be read whole.
+  const D_FILM = Math.min(maxScroll, geom.frameTop - 40);
+  const D_ACTIONS = Math.min(maxScroll, geom.actionsTop - 620);
+  const D_LEGEND = 190;
+  log(`${DEVICE} ${CUT} cut — film at ${Math.round(geom.frameTop)}, max scroll ${maxScroll}`);
 
   /** Centre of an element inside the film iframe, in screen coordinates. */
   const filmPoint = async (selector) => {
@@ -267,6 +311,47 @@ async function main() {
     const r = await page.locator(selector).boundingBox();
     return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
   };
+  /** Box of an element inside the film iframe, in screen coordinates. */
+  const filmRect = async (selector) => {
+    const c = await filmPoint(selector);
+    const { w, h } = await film.evaluate((sel) => {
+      const r = document.querySelector(sel).getBoundingClientRect();
+      return { w: r.width, h: r.height };
+    }, selector);
+    return { x: c.x - w / 2, y: c.y - h / 2, w, h };
+  };
+  const toPage = (y) => page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), y);
+  const toFilm = (y) => film.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), y);
+
+  // Where the pointer goes, measured once at the scroll positions it will be
+  // used at, so a glide can start before the thing it is gliding to is pressed.
+  let SPOT = null;
+  if (DEVICE === 'desktop') {
+    await toPage(D_FILM);
+    const two = await filmPoint('[data-speed="2"]');
+    const four = await filmPoint('[data-speed="4"]');
+    const section = await filmRect('#section');
+    const ticker = await filmPoint('#tickerSubject');
+    await toFilm(D_LEGEND);
+    const legend = await filmRect('#legend');
+    await toFilm(0);
+    await toPage(D_ACTIONS);
+    const copy = await pagePoint('#copyLink');
+    await toPage(0);
+    const across = (fx, fy) => ({ x: section.x + section.w * fx, y: section.y + section.h * fy });
+    SPOT = {
+      offstage: { x: VIEW.width + 60, y: VIEW.height - 60 },
+      rest: { x: section.x + section.w - 30, y: section.y + section.h + 150 },
+      two,
+      four,
+      sweepFrom: across(0.14, 0.62),
+      sweepTo: across(0.9, 0.5),
+      ticker: { x: ticker.x + 40, y: ticker.y + 4 },
+      legend: { x: legend.x + 70, y: legend.y + legend.h * 0.58 },
+      aside: { x: ticker.x + 90, y: ticker.y + 70 },
+      copy,
+    };
+  }
 
   // ---- the timeline -------------------------------------------------------
   // Each beat owns a stretch of seconds and sets the two scroll positions for
@@ -274,6 +359,14 @@ async function main() {
   // moment. Times are in seconds of finished video.
   let pageY = 0;
   let filmY = 0;
+  // Desktop only: where the drawn pointer is, and how visible. The real mouse
+  // is moved to the same place, so hover states and the player's hairline
+  // follow it exactly.
+  let pointer = { x: -60, y: -60, a: 0 };
+  const glide = (t, t0, t1, a, b) => ({
+    x: leg(t, t0, t1, a.x, b.x),
+    y: leg(t, t0, t1, a.y, b.y),
+  });
   const fired = new Set();
   const once = async (key, at, t, fn) => {
     if (t < at || fired.has(key)) return;
@@ -433,7 +526,91 @@ async function main() {
     },
   ];
 
-  const beats = CUT === 'short' ? shortCut : longCut;
+  // The desktop cut keeps the long cut's marks to the frame: 2x at 0:11.0, 4x
+  // at 0:27.8, Copy link at 0:35.4, 41.4s in all. So the two recordings can
+  // share a frame with their films depositing in step, and share one
+  // voiceover. What changes is what fills each beat: a mouse instead of a
+  // thumb, and the hover hairline the phone has no way to show.
+  const desktopCut = [
+    {
+      name: 'open',
+      until: 3.6,
+      async at(t) {
+        pageY = leg(t, 0.5, 3.4, 0, D_FILM);
+      },
+    },
+    {
+      // The instrument, whole: section, readouts, commit, transport.
+      name: 'film',
+      until: 8.6,
+      async at(t) {
+        pageY = D_FILM;
+        pointer = { ...glide(t, 1.6, 4, SPOT.offstage, SPOT.rest), a: leg(t, 1.4, 2, 0, 1) };
+      },
+    },
+    {
+      name: 'controls',
+      until: 13.6,
+      async at(t, vt) {
+        pointer = { ...glide(t, 0.3, 2.1, SPOT.rest, SPOT.two), a: 1 };
+        await once('speed2', 2.4, t, () => tap('[data-speed="2"]', vt, true));
+        if (t > 3.2) pointer = { ...glide(t, 3.4, 4.9, SPOT.two, SPOT.sweepFrom), a: 1 };
+      },
+    },
+    {
+      // Across the section: the hairline reads the date under the pointer.
+      name: 'stats',
+      until: 18.6,
+      async at(t) {
+        pointer = { ...glide(t, 0.2, 4.6, SPOT.sweepFrom, SPOT.sweepTo), a: 1 };
+      },
+    },
+    {
+      name: 'ticker',
+      until: 22.6,
+      async at(t) {
+        pointer = { ...glide(t, 0.3, 1.8, SPOT.sweepTo, SPOT.ticker), a: 1 };
+      },
+    },
+    {
+      name: 'legend',
+      until: 26.6,
+      async at(t) {
+        filmY = leg(t, 0.2, 1.8, 0, D_LEGEND);
+        pointer = { ...glide(t, 0.4, 2, SPOT.ticker, SPOT.legend), a: 1 };
+      },
+    },
+    {
+      // Back up for the last stretch at 4x, then out of the way of the card.
+      name: 'finish',
+      until: 33,
+      async at(t, vt) {
+        filmY = leg(t, 0, 0.8, D_LEGEND, 0, easeOut);
+        pointer = { ...glide(t, 0.1, 1, SPOT.legend, SPOT.four), a: 1 };
+        await once('speed4', 1.2, t, () => tap('[data-speed="4"]', vt, true));
+        if (t > 2.4) pointer = { ...glide(t, 2.6, 3.8, SPOT.four, SPOT.aside), a: 1 };
+      },
+    },
+    {
+      name: 'actions',
+      until: 37.4,
+      async at(t, vt) {
+        pageY = leg(t, 0.2, 1.8, D_FILM, D_ACTIONS);
+        pointer = { ...glide(t, 0.6, 2.2, SPOT.aside, SPOT.copy), a: 1 };
+        await once('copy', 2.4, t, () => tap('#copyLink', vt, false));
+      },
+    },
+    {
+      name: 'cards',
+      until: 41.4,
+      async at(t) {
+        pageY = leg(t, 0, 3.4, D_ACTIONS, maxScroll);
+        pointer = { ...SPOT.copy, a: leg(t, 0.4, 1, 1, 0) };
+      },
+    },
+  ];
+
+  const beats = DEVICE === 'desktop' ? desktopCut : CUT === 'short' ? shortCut : longCut;
 
   const total = beats[beats.length - 1].until;
   const frames = Math.round(total * FPS);
@@ -495,12 +672,15 @@ async function main() {
     await beats[beatIndex].at(vt - beatStart, vt);
 
     await page.evaluate(
-      ([py, fy, t]) => {
+      ([py, t, px, pyy, pa]) => {
         window.scrollTo({ top: py, behavior: 'instant' });
         window.__tapFrame(t);
+        window.__pointer(px, pyy, pa);
       },
-      [pageY, filmY, vt]
+      [pageY, vt, pointer.x, pointer.y, pointer.a]
     );
+    // Before the film is pumped, so the hover it causes lands in this frame.
+    if (DEVICE === 'desktop' && pointer.a > 0) await page.mouse.move(pointer.x, pointer.y);
     // The film's clock starts a beat late, so its title card plays as the
     // section scrolls into view rather than off screen above it. It is pumped
     // in steps of at most a 30th of a second, which is the largest step the
