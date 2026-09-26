@@ -1,6 +1,8 @@
 # Renders this repository's own history with its own action, so the embed path
 # in the README is exercised rather than assumed. The result is force-pushed to
-# the `sediment` branch, which is what the README image link points at.
+# the `sediment` branch, which is what the README image link points at. It
+# re-renders on every push to main, so each merged PR shows up in the film,
+# and weekly as a fallback.
 name: sediment
 
 on:
@@ -9,11 +11,6 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - action.yml
-      - bin/**
-      - src/**
-      - .github/workflows/sediment.yml
 
 permissions:
   contents: write

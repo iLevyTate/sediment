@@ -75,7 +75,7 @@ Then in your README:
 ![History](https://raw.githubusercontent.com/OWNER/REPO/sediment/sediment.gif)
 ```
 
-This repository does exactly that to itself, on every change to the action. The image below is not
+This repository does exactly that to itself, on every push to main. The image below is not
 committed anywhere; it is served from the `sediment` branch and replaced by the workflow, so it
 shows this repository as of the last run.
 
