@@ -148,3 +148,5 @@ _site/
 *.mp4
 *.gif
 !assets/*.gif
+.social/
+tools/social/.fonts/
