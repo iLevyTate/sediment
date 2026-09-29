@@ -6,8 +6,11 @@
     ramp on the dark surface, fixed rather than theme-aware, because a mark
     that changes with the viewer's settings stops being recognisable.
     Every boundary shares its control points, so the bands keep their
-    proportions all the way down the slope. The favicons in index.html and
-    src/player.html are this file, inlined.
+    proportions all the way down the slope.
+    Copies to keep in step when this changes: the favicon and header mark in
+    index.html and src/player.html, the canvas version in src/player.html
+    (MARK_BANDS), the lockup in assets/hero.svg, apple-touch-icon.png,
+    logo-512.png and social-card.png. tools/social/compose.mjs reads this file.
   -->
   <clipPath id="tile"><rect width="64" height="64" rx="14"/></clipPath>
   <rect width="64" height="64" rx="14" fill="#0f1218"/>

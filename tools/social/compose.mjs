@@ -119,6 +119,12 @@ const baseCss = ({ w, h }) => `
   .strata { position: absolute; left: 0; right: 0; height: 100%; }
   .strata i { position: absolute; left: -6%; width: 112%; display: block; filter: blur(7px); }
 `;
+/** The mark, read from assets/logo.svg so the video never drifts from it. */
+const MARK = fs
+  .readFileSync(path.join(ROOT, 'assets', 'logo.svg'), 'utf8')
+  .replace(/<!--[\s\S]*?-->/, '')
+  .replace('<svg ', '<svg class="mark" ')
+  .trim();
 const RAMP = [
   '#7ea465',
   '#a14a30',
@@ -229,6 +235,7 @@ const endcardHtml = (canvas) => {
     font-weight: 700; font-size: ${wide ? 150 : 136}px; letter-spacing: -.022em; line-height: 1;
   }
   h1 em { font-style: normal; color: #5cb8bf; }
+  h1 .mark { width: .86em; height: .86em; vertical-align: -.1em; margin-right: .3em; }
   .rule { display: flex; width: ${wide ? 620 : 560}px; height: 7px; border-radius: 4px; overflow: hidden; }
   .rule i { flex: 1; }
   p.tag {
@@ -249,7 +256,7 @@ const endcardHtml = (canvas) => {
   <div class="ground"></div>
   <div class="strata">${bands}</div>
   <div class="wrap">
-    <h1>Sed<em>iment</em></h1>
+    <h1>${MARK}Sed<em>iment</em></h1>
     <div class="rule">${RAMP.map((c) => `<i style="background:${c}"></i>`).join('')}</div>
     <p class="tag">Turn any git repository's history into a stratigraphic film.</p>
     <div class="cmd">npx github:iLevyTate/sediment</div>

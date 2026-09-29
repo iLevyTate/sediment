@@ -39,6 +39,7 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3CclipPath id='tile'%3E%3Crect width='64' height='64' rx='14'/%3E%3C/clipPath%3E%3Crect width='64' height='64' rx='14' fill='%230f1218'/%3E%3Cg clip-path='url(%23tile)' stroke='%230f1218' stroke-width='1.25'%3E%3Cpath d='M-2 62C20 62 36 14 66 14V66H-2Z' fill='%2348bec7'/%3E%3Cpath d='M-2 62C20 62 36 22 66 22V66H-2Z' fill='%23dda23c'/%3E%3Cpath d='M-2 62C20 62 36 28 66 28V66H-2Z' fill='%23609cc7'/%3E%3Cpath d='M-2 62C20 62 36 37 66 37V66H-2Z' fill='%23cb6748'/%3E%3Cpath d='M-2 62C20 62 36 44 66 44V66H-2Z' fill='%23a1bf8d'/%3E%3C/g%3E%3Cg fill='%2348bec7'%3E%3Ccircle cx='22' cy='22' r='1.6' opacity='.45'/%3E%3Ccircle cx='22' cy='29.5' r='2.4' opacity='.7'/%3E%3Ccircle cx='22' cy='38' r='3.4'/%3E%3C/g%3E%3Crect x='.5' y='.5' width='63' height='63' rx='13.5' fill='none' stroke='%23232833'/%3E%3C/svg%3E"
     />
+    <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
 
     <!--
       Everything the first screen needs is asked for here, during head parsing,
@@ -268,6 +269,15 @@
         font-size: clamp(28px, 4.6vw, 42px);
         letter-spacing: -0.02em;
         margin: 0;
+      }
+      /* The mark sits on the baseline with the wordmark, a little taller than
+         the capitals, so the header still aligns on the type. The space after
+         it in the markup supplies most of the gap. */
+      h1 .mark {
+        width: 0.86em;
+        height: 0.86em;
+        vertical-align: -0.1em;
+        margin-right: 0.08em;
       }
       h1 em {
         font-style: normal;
@@ -887,7 +897,26 @@
   <body>
     <div class="wrap">
       <header>
-        <h1>Sed<em>iment</em></h1>
+        <h1>
+          <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
+            <clipPath id="mark-tile"><rect width="64" height="64" rx="14" /></clipPath>
+            <rect width="64" height="64" rx="14" fill="#0f1218" />
+            <g clip-path="url(#mark-tile)" stroke="#0f1218" stroke-width="1.25">
+              <path d="M-2 62C20 62 36 14 66 14V66H-2Z" fill="#48bec7" />
+              <path d="M-2 62C20 62 36 22 66 22V66H-2Z" fill="#dda23c" />
+              <path d="M-2 62C20 62 36 28 66 28V66H-2Z" fill="#609cc7" />
+              <path d="M-2 62C20 62 36 37 66 37V66H-2Z" fill="#cb6748" />
+              <path d="M-2 62C20 62 36 44 66 44V66H-2Z" fill="#a1bf8d" />
+            </g>
+            <g fill="#48bec7">
+              <circle cx="22" cy="22" r="1.6" opacity=".45" />
+              <circle cx="22" cy="29.5" r="2.4" opacity=".7" />
+              <circle cx="22" cy="38" r="3.4" />
+            </g>
+            <rect x=".5" y=".5" width="63" height="63" rx="13.5" fill="none" stroke="#232833" />
+          </svg>
+          Sed<em>iment</em>
+        </h1>
         <p class="tagline">
           Type a GitHub repository and watch its history settle as sediment. Time runs left to
           right, each band is a region of the tree, and thickness is the code alive at that moment.
