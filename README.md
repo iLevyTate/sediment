@@ -8,14 +8,14 @@
 
 **[ilevytate.github.io/sediment](https://ilevytate.github.io/sediment/)**
 
+![Seventeen years of expressjs/express, drawn as sediment](assets/sediment.gif)
+
 I wanted to see what my repository actually looked like over its whole life, and everything I found
 gave me either a line chart or a swarm of dots I couldn't read. So I wrote this. It draws a git
 history the way a road cut shows geology. Time runs left to right, each band is a region of the
 tree, and the thickness of a band is how much code was alive at that moment. Grains fall on every
 file a commit touches, sized by that file's line count. Deletions rise and drift off instead of
 settling.
-
-![Seventeen years of expressjs/express, drawn as sediment](assets/sediment.gif)
 
 It works on any git repository, not only the one I built it for. The animation above is
 `expressjs/express`: 6,158 commits, 390 contributors, June 2009 to July 2026, 209 files and 26,700

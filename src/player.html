@@ -7,7 +7,7 @@
 <title>Sediment</title>
 <link
   rel="icon"
-  href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f6f78'/%3E%3Cg fill='%23fbfbfd'%3E%3Crect x='6' y='9' width='20' height='4' rx='1' opacity='.55'/%3E%3Crect x='6' y='15' width='20' height='5' rx='1' opacity='.8'/%3E%3Crect x='6' y='22' width='20' height='3' rx='1' opacity='.4'/%3E%3C/g%3E%3C/svg%3E"
+  href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3CclipPath id='tile'%3E%3Crect width='64' height='64' rx='14'/%3E%3C/clipPath%3E%3Crect width='64' height='64' rx='14' fill='%230f1218'/%3E%3Cg clip-path='url(%23tile)' stroke='%230f1218' stroke-width='1.25'%3E%3Cpath d='M-2 62C20 62 36 14 66 14V66H-2Z' fill='%2348bec7'/%3E%3Cpath d='M-2 62C20 62 36 22 66 22V66H-2Z' fill='%23dda23c'/%3E%3Cpath d='M-2 62C20 62 36 28 66 28V66H-2Z' fill='%23609cc7'/%3E%3Cpath d='M-2 62C20 62 36 37 66 37V66H-2Z' fill='%23cb6748'/%3E%3Cpath d='M-2 62C20 62 36 44 66 44V66H-2Z' fill='%23a1bf8d'/%3E%3C/g%3E%3Cg fill='%2348bec7'%3E%3Ccircle cx='22' cy='22' r='1.6' opacity='.45'/%3E%3Ccircle cx='22' cy='29.5' r='2.4' opacity='.7'/%3E%3Ccircle cx='22' cy='38' r='3.4'/%3E%3C/g%3E%3Crect x='.5' y='.5' width='63' height='63' rx='13.5' fill='none' stroke='%23232833'/%3E%3C/svg%3E"
 />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -145,6 +145,16 @@
   .wordmark em {
     font-style: normal;
     color: var(--accent);
+  }
+
+  /* The sediment mark, a little taller than the capitals and sitting on the
+     baseline with them, so the masthead still aligns on the repository name.
+     The space after it in the markup supplies most of the gap. */
+  .wordmark .mark {
+    width: 0.86em;
+    height: 0.86em;
+    vertical-align: -0.1em;
+    margin-right: 0.08em;
   }
 
   .standfirst {
@@ -693,7 +703,26 @@
 
 <div class="shell">
   <header class="masthead">
-    <h1 class="wordmark" id="wordmark"></h1>
+    <h1 class="wordmark">
+      <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
+        <clipPath id="mark-tile"><rect width="64" height="64" rx="14" /></clipPath>
+        <rect width="64" height="64" rx="14" fill="#0f1218" />
+        <g clip-path="url(#mark-tile)" stroke="#0f1218" stroke-width="1.25">
+          <path d="M-2 62C20 62 36 14 66 14V66H-2Z" fill="#48bec7" />
+          <path d="M-2 62C20 62 36 22 66 22V66H-2Z" fill="#dda23c" />
+          <path d="M-2 62C20 62 36 28 66 28V66H-2Z" fill="#609cc7" />
+          <path d="M-2 62C20 62 36 37 66 37V66H-2Z" fill="#cb6748" />
+          <path d="M-2 62C20 62 36 44 66 44V66H-2Z" fill="#a1bf8d" />
+        </g>
+        <g fill="#48bec7">
+          <circle cx="22" cy="22" r="1.6" opacity=".45" />
+          <circle cx="22" cy="29.5" r="2.4" opacity=".7" />
+          <circle cx="22" cy="38" r="3.4" />
+        </g>
+        <rect x=".5" y=".5" width="63" height="63" rx="13.5" fill="none" stroke="#232833" />
+      </svg>
+      <span id="wordmark"></span>
+    </h1>
     <p class="standfirst">
       <span id="standfirst"></span>
     </p>
@@ -1411,6 +1440,76 @@
     ctx.textAlign = 'center';
   }
 
+  /**
+   * The sediment mark (assets/logo.svg) on the 64-unit grid it is drawn on
+   * there. It is painted once per pixel size into a canvas of its own, so a
+   * fade dims it as one picture instead of letting the bands show through
+   * each other.
+   */
+  const MARK_TILE =
+    'M14 0H50A14 14 0 0 1 64 14V50A14 14 0 0 1 50 64H14A14 14 0 0 1 0 50V14A14 14 0 0 1 14 0Z';
+  const MARK_EDGE =
+    'M14 .5H50A13.5 13.5 0 0 1 63.5 14V50A13.5 13.5 0 0 1 50 63.5H14A13.5 13.5 0 0 1 .5 50V14A13.5 13.5 0 0 1 14 .5Z';
+  const MARK_BANDS = [
+    [14, '#48bec7'],
+    [22, '#dda23c'],
+    [28, '#609cc7'],
+    [37, '#cb6748'],
+    [44, '#a1bf8d'],
+  ];
+  const MARK_GRAINS = [
+    [22, 1.6, 0.45],
+    [29.5, 2.4, 0.7],
+    [38, 3.4, 1],
+  ];
+  const markCache = new Map();
+
+  /** @param {number} px side in device pixels @returns {HTMLCanvasElement} */
+  function markImage(px) {
+    let c = markCache.get(px);
+    if (c) return c;
+    c = document.createElement('canvas');
+    c.width = c.height = px;
+    const m = c.getContext('2d');
+    m.scale(px / 64, px / 64);
+    const tile = new Path2D(MARK_TILE);
+    m.fillStyle = '#0f1218';
+    m.fill(tile);
+    m.save();
+    m.clip(tile);
+    m.strokeStyle = '#0f1218';
+    m.lineWidth = 1.25;
+    for (const [y, colour] of MARK_BANDS) {
+      const band = new Path2D(`M-2 62C20 62 36 ${y} 66 ${y}V66H-2Z`);
+      m.fillStyle = colour;
+      m.fill(band);
+      m.stroke(band);
+    }
+    m.restore();
+    m.fillStyle = '#48bec7';
+    for (const [cy, r, o] of MARK_GRAINS) {
+      m.globalAlpha = o;
+      m.beginPath();
+      m.arc(22, cy, r, 0, Math.PI * 2);
+      m.fill();
+    }
+    m.globalAlpha = 1;
+    m.strokeStyle = '#232833';
+    m.lineWidth = 1;
+    m.stroke(new Path2D(MARK_EDGE));
+    markCache.set(px, c);
+    return c;
+  }
+
+  /** @param {number} cx @param {number} bottom @param {number} size @param {number} a */
+  function drawMark(cx, bottom, size, a) {
+    if (a <= 0.001) return;
+    const px = Math.max(1, Math.round(size * (canvas.width / W)));
+    ctx.globalAlpha = a;
+    ctx.drawImage(markImage(px), cx - size / 2, bottom - size, size, size);
+    ctx.globalAlpha = 1;
+  }
+
   /** @param {number} cx @param {number} y @param {number} half @param {number} a */
   function drawRule(cx, y, half, a) {
     if (half <= 0 || a <= 0) return;
@@ -1445,7 +1544,9 @@
 
     const markA = seg(p, 0.08, 0.46) * cover;
     const rise = (1 - easeOut(seg(p, 0.08, 0.5))) * 16;
-    drawWordmark(cx, cy - 20 + rise, Math.min(88, W * 0.062), markA);
+    const size = Math.min(88, W * 0.062);
+    drawMark(cx, cy - 20 + rise - size * 1.02, size * 0.6, markA);
+    drawWordmark(cx, cy - 20 + rise, size, markA);
 
     drawRule(cx, cy + 4 + rise, easeOut(seg(p, 0.26, 0.66)) * Math.min(260, W * 0.2), cover);
 
@@ -1479,7 +1580,9 @@
     ctx.fillStyle = theme.dark ? `rgba(4,5,8,${a * 0.76})` : `rgba(246,247,250,${a * 0.84})`;
     ctx.fillRect(0, 0, W, Hgt);
 
-    drawWordmark(cx, cy - 38 + rise, Math.min(64, W * 0.045), a);
+    const size = Math.min(64, W * 0.045);
+    drawMark(cx, cy - 38 + rise - size * 1.02, size * 0.6, a);
+    drawWordmark(cx, cy - 38 + rise, size, a);
     drawRule(cx, cy - 12 + rise, easeOut(a) * Math.min(240, W * 0.185), a);
 
     ctx.textAlign = 'center';

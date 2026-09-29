@@ -121,6 +121,12 @@ function webAssets(outDir) {
   for (const f of ['palette.js', 'lanes.js', 'payload.js', 'github.js', 'player.html']) {
     fs.copyFileSync(path.join(ROOT, 'src', f), path.join(dest, 'src', f));
   }
+  // index.html links the touch icon; the favicon itself is inlined.
+  const touchIcon = path.join(ROOT, 'assets', 'apple-touch-icon.png');
+  if (fs.existsSync(touchIcon)) {
+    fs.mkdirSync(path.join(dest, 'assets'), { recursive: true });
+    fs.copyFileSync(touchIcon, path.join(dest, 'assets', 'apple-touch-icon.png'));
+  }
   fs.writeFileSync(path.join(dest, '.nojekyll'), '');
   log(`assembled ${path.relative(process.cwd(), dest)}/ for static hosting`);
 }

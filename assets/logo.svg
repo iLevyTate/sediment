@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Sediment">
+  <!--
+    The mark. It is the hero's wedge cut into a tile: five lanes in the order
+    src/palette.js deals them, thin at the oldest commit and thick at today,
+    with a grain falling onto the newest layer. Colours are the dark-theme
+    ramp on the dark surface, fixed rather than theme-aware, because a mark
+    that changes with the viewer's settings stops being recognisable.
+    Every boundary shares its control points, so the bands keep their
+    proportions all the way down the slope.
+    Copies to keep in step when this changes: the favicon and header mark in
+    index.html and src/player.html, the canvas version in src/player.html
+    (MARK_BANDS), the lockup in assets/hero.svg, apple-touch-icon.png,
+    logo-512.png and social-card.png. tools/social/compose.mjs reads this file.
+  -->
+  <clipPath id="tile"><rect width="64" height="64" rx="14"/></clipPath>
+  <rect width="64" height="64" rx="14" fill="#0f1218"/>
+  <g clip-path="url(#tile)" stroke="#0f1218" stroke-width="1.25">
+    <path d="M-2 62C20 62 36 14 66 14V66H-2Z" fill="#48bec7"/>
+    <path d="M-2 62C20 62 36 22 66 22V66H-2Z" fill="#dda23c"/>
+    <path d="M-2 62C20 62 36 28 66 28V66H-2Z" fill="#609cc7"/>
+    <path d="M-2 62C20 62 36 37 66 37V66H-2Z" fill="#cb6748"/>
+    <path d="M-2 62C20 62 36 44 66 44V66H-2Z" fill="#a1bf8d"/>
+  </g>
+  <g fill="#48bec7">
+    <circle cx="22" cy="22" r="1.6" opacity=".45"/>
+    <circle cx="22" cy="29.5" r="2.4" opacity=".7"/>
+    <circle cx="22" cy="38" r="3.4"/>
+  </g>
+  <rect x=".5" y=".5" width="63" height="63" rx="13.5" fill="none" stroke="#232833"/>
+</svg>
