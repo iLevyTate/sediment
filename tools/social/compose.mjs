@@ -119,10 +119,12 @@ const baseCss = ({ w, h }) => `
   .strata { position: absolute; left: 0; right: 0; height: 100%; }
   .strata i { position: absolute; left: -6%; width: 112%; display: block; filter: blur(7px); }
 `;
-/** The mark, read from assets/logo.svg so the video never drifts from it. */
+/**
+ * The mark, read from assets/logo.svg so the video never drifts from it. Its
+ * comment rides along: inside inline SVG an HTML comment is inert.
+ */
 const MARK = fs
   .readFileSync(path.join(ROOT, 'assets', 'logo.svg'), 'utf8')
-  .replace(/<!--[\s\S]*?-->/, '')
   .replace('<svg ', '<svg class="mark" ')
   .trim();
 const RAMP = [
